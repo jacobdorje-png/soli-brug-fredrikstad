@@ -31,8 +31,6 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 #logout-btn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.35rem .75rem;border-radius:6px;font-size:.75rem;font-family:'proxima-nova','Nunito',sans-serif;font-weight:700;cursor:pointer}
 
 .section{background:var(--white);border:1px solid var(--border);border-radius:var(--r);margin:1rem;padding:1.2rem;box-shadow:0 2px 10px rgba(0,0,0,.07)}
-
-/* ── SECTION HEADER WITH TOGGLE ── */
 .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
 .stitle{font-size:1rem;font-weight:700;color:var(--accent);letter-spacing:.02em}
 
@@ -40,7 +38,6 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 .mode-btn{padding:.3rem .7rem;font-family:'proxima-nova','Nunito',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .15s}
 .mode-btn.active{background:var(--accent);color:#fff}
 
-/* datetime field – hidden by default */
 #datetime-row{display:none;margin-bottom:.7rem}
 #datetime-row.visible{display:block}
 
@@ -53,7 +50,6 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 
 #form-msg{text-align:center;font-size:.85rem;margin-top:.5rem;min-height:1.2em;font-weight:600}
 
-/* ── SALE CARDS ── */
 .sale-card{background:#faf8f5;border:1px solid var(--border);border-radius:8px;padding:.9rem;margin-bottom:.7rem}
 .sc-top{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.4rem}
 .sc-nr{font-size:.7rem;font-weight:700;color:#fff;background:var(--accent);padding:.2rem .55rem;border-radius:20px;white-space:nowrap}
@@ -71,13 +67,11 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 .badge-no{font-size:.7rem;color:var(--muted);font-weight:600}
 .sc-total{font-size:1.05rem;font-weight:700;color:var(--accent)}
 
-/* ── STATUS BUTTONS – mobile ── */
 .sc-actions{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.4rem}
 .status-btn{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem .5rem;border-radius:8px;border:2px solid var(--border);font-family:'proxima-nova','Nunito',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;background:var(--white);color:var(--muted);transition:all .15s}
 .status-btn.ok-green{background:#d4edda;border-color:var(--green);color:var(--green)}
 .status-btn.ok-blue{background:#d0e4f7;border-color:var(--blue);color:var(--blue)}
 
-/* ── STATUS BUTTONS – desktop: small chips ── */
 @media(min-width:600px){
   .sc-actions{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.3rem}
   .status-btn{padding:.2rem .6rem;border-radius:20px;font-size:.72rem;border-width:1.5px;gap:.25rem}
@@ -86,7 +80,6 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 .sc-edit-row{text-align:center}
 .sc-edit-btn{background:none;border:none;font-size:.75rem;color:#aaa;font-weight:600;cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif;text-decoration:underline;padding:.2rem}
 
-/* ── GRAND TOTALS ── */
 #grand-totals{display:none;background:var(--accent);color:#fff;border-radius:var(--r);padding:1rem;margin-top:.5rem}
 #grand-totals h3{font-size:.78rem;font-weight:700;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem}
 .gt-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin-bottom:.6rem}
@@ -97,7 +90,6 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 .gt-foot span{font-size:.82rem;opacity:.8;font-weight:600}
 .gt-foot strong{font-size:1.4rem;font-weight:700}
 
-/* ── MODAL ── */
 #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;overflow-y:auto;padding:1rem}
 #modal-overlay.open{display:flex;align-items:flex-start;justify-content:center}
 #modal{background:var(--white);border-radius:var(--r);width:100%;max-width:480px;padding:1.4rem;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.25)}
@@ -111,7 +103,6 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 
 #loading{text-align:center;color:var(--muted);padding:1.5rem;font-size:.9rem;font-weight:600}
 #empty{text-align:center;color:var(--muted);padding:1.5rem;font-size:.9rem;display:none;font-weight:600}
-
 @media(max-width:360px){.sc-amounts,.gt-row{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -142,19 +133,16 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 
   <div class="section">
     <div class="section-head">
-      <div class="stitle" id="form-title">Nytt salg</div>
+      <div class="stitle">Nytt salg</div>
       <div class="mode-toggle">
         <button class="mode-btn active" id="btn-nytt" onclick="setMode('nytt')">Nytt salg</button>
         <button class="mode-btn" id="btn-gammelt" onclick="setMode('gammelt')">Gammelt salg</button>
       </div>
     </div>
-
-    <!-- Tidspunkt – kun synlig i Gammelt salg-modus -->
     <div id="datetime-row">
       <span class="lbl">Tidspunkt for salget</span>
       <input type="datetime-local" id="f-dato">
     </div>
-
     <div class="fgrid">
       <div class="fcol2"><span class="lbl">Navn</span><input type="text" id="f-navn" placeholder="Fullt navn" autocomplete="off"></div>
       <div><span class="lbl">Telefon</span><input type="tel" id="f-telefon" placeholder="Telefonnummer"></div>
@@ -195,7 +183,6 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
   </div>
 </div>
 
-<!-- EDIT MODAL -->
 <div id="modal-overlay">
   <div id="modal">
     <div class="modal-head">
@@ -203,6 +190,12 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
       <button id="modal-close">×</button>
     </div>
     <div class="fgrid">
+      <!-- Tidspunkt øverst i modal -->
+      <div class="fcol2">
+        <span class="lbl">Tidspunkt for salget</span>
+        <input type="datetime-local" id="m-dato">
+      </div>
+      <hr class="fdiv">
       <div class="fcol2"><span class="lbl">Navn</span><input type="text" id="m-navn" placeholder="Fullt navn"></div>
       <div><span class="lbl">Telefon</span><input type="tel" id="m-telefon" placeholder="Telefonnummer"></div>
       <div><span class="lbl">E-post</span><input type="email" id="m-epost" placeholder="epost@epost.no"></div>
@@ -232,7 +225,7 @@ var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6I
 var CODE='SoliBrugFredrikstad';
 var sb=null;
 var editId=null;
-var mode='nytt'; // 'nytt' eller 'gammelt'
+var mode='nytt';
 
 function loadSB(cb){
   var s=document.createElement('script');
@@ -266,7 +259,6 @@ if(sessionStorage.getItem('sbauth')==='1'){
   loadSB(function(){document.getElementById('app').style.display='block';init();});
 }
 
-/* ── MODE TOGGLE ── */
 function setMode(m){
   mode=m;
   document.getElementById('btn-nytt').className='mode-btn'+(m==='nytt'?' active':'');
@@ -274,7 +266,6 @@ function setMode(m){
   var dr=document.getElementById('datetime-row');
   if(m==='gammelt'){
     dr.classList.add('visible');
-    // sett default til nå
     var now=new Date();
     now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
     document.getElementById('f-dato').value=now.toISOString().slice(0,16);
@@ -284,11 +275,18 @@ function setMode(m){
   }
 }
 
-/* ── HELPERS ── */
 function n(id){return parseFloat(document.getElementById(id).value)||0;}
 function kr(v){return(v||0).toLocaleString('nb-NO')+' kr';}
 function onr(n){return'2026-'+String(n).padStart(3,'0');}
 function fmt(iso){var d=new Date(iso);return d.toLocaleDateString('nb-NO',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit'});}
+
+/* Konverter ISO til datetime-local-format */
+function toLocalInput(iso){
+  var d=new Date(iso);
+  d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+  return d.toISOString().slice(0,16);
+}
+
 function calcT(p){var t=n(p+'pris')+n(p+'bkh')+n(p+'ramme')+n(p+'frakt');document.getElementById(p+'total').value=t>0?t:'';}
 
 function init(){
@@ -370,29 +368,14 @@ async function submitSale(){
   var navn=document.getElementById('f-navn').value.trim();
   if(!navn){msg.style.color='var(--danger)';msg.textContent='Navn er påkrevd.';return;}
   btn.disabled=true;btn.textContent='Registrerer…';
-  var row={
-    navn:navn,
-    telefon:document.getElementById('f-telefon').value.trim(),
-    epost:document.getElementById('f-epost').value.trim(),
-    adresse:document.getElementById('f-adresse').value.trim(),
-    levering:document.getElementById('f-levering').checked,
-    kunstner:document.getElementById('f-kunstner').value.trim(),
-    tittel:document.getElementById('f-tittel').value.trim(),
-    pris:n('f-pris'),bkh:n('f-bkh'),ramme:n('f-ramme'),frakt:n('f-frakt'),total:n('f-total'),
-    hentet:false,faktura_sendt:false
-  };
-  // Gammelt salg: bruk valgt tidspunkt
-  if(mode==='gammelt'){
-    var datoVal=document.getElementById('f-dato').value;
-    if(datoVal) row.created_at=new Date(datoVal).toISOString();
-  }
+  var row={navn:navn,telefon:document.getElementById('f-telefon').value.trim(),epost:document.getElementById('f-epost').value.trim(),adresse:document.getElementById('f-adresse').value.trim(),levering:document.getElementById('f-levering').checked,kunstner:document.getElementById('f-kunstner').value.trim(),tittel:document.getElementById('f-tittel').value.trim(),pris:n('f-pris'),bkh:n('f-bkh'),ramme:n('f-ramme'),frakt:n('f-frakt'),total:n('f-total'),hentet:false,faktura_sendt:false};
+  if(mode==='gammelt'){var dv=document.getElementById('f-dato').value;if(dv)row.created_at=new Date(dv).toISOString();}
   var r=await sb.from('salg').insert([row]);
   btn.disabled=false;btn.textContent='Registrer salg';
   if(r.error){msg.style.color='var(--danger)';msg.textContent='Feil: '+r.error.message;return;}
   msg.style.color='var(--green)';msg.textContent='✓ Salg registrert!';
   ['navn','telefon','epost','adresse','kunstner','tittel','pris','bkh','ramme','frakt','total'].forEach(function(k){document.getElementById('f-'+k).value='';});
   document.getElementById('f-levering').checked=false;
-  // Tilbake til Nytt salg-modus
   setMode('nytt');
   setTimeout(function(){msg.textContent='';},4000);
   loadSales();
@@ -401,6 +384,9 @@ async function submitSale(){
 function openModal(s){
   editId=s.id;
   document.getElementById('modal-title').textContent='Rediger – '+onr(s.ordrenummer);
+  /* Fyll inn tidspunkt */
+  document.getElementById('m-dato').value=toLocalInput(s.created_at);
+  /* Fyll inn øvrige felt */
   ['navn','telefon','epost','adresse','kunstner','tittel','pris','bkh','ramme','frakt','total'].forEach(function(k){document.getElementById('m-'+k).value=s[k]||'';});
   document.getElementById('m-levering').checked=!!s.levering;
   document.getElementById('modal-msg').textContent='';
@@ -429,6 +415,9 @@ async function saveSale(){
     tittel:document.getElementById('m-tittel').value.trim(),
     pris:n('m-pris'),bkh:n('m-bkh'),ramme:n('m-ramme'),frakt:n('m-frakt'),total:n('m-total')
   };
+  /* Oppdater tidspunkt */
+  var dv=document.getElementById('m-dato').value;
+  if(dv)row.created_at=new Date(dv).toISOString();
   var r=await sb.from('salg').update(row).eq('id',editId);
   btn.disabled=false;btn.textContent='Lagre endringer';
   if(r.error){msg.style.color='var(--danger)';msg.textContent='Feil: '+r.error.message;return;}
