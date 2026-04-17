@@ -50,36 +50,52 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 
 #form-msg{text-align:center;font-size:.85rem;margin-top:.5rem;min-height:1.2em;font-weight:600}
 
+/* ── SALE CARD ── */
 .sale-card{background:#faf8f5;border:1px solid var(--border);border-radius:8px;padding:.9rem;margin-bottom:.7rem}
-.sc-top{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.4rem}
+
+/* Topplinje: ordrenr + tid */
+.sc-top{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.55rem}
 .sc-nr{font-size:.7rem;font-weight:700;color:#fff;background:var(--accent);padding:.2rem .55rem;border-radius:20px;white-space:nowrap}
 .sc-time{font-size:.68rem;color:var(--muted);white-space:nowrap;font-weight:600}
-.sc-name{font-size:1rem;font-weight:700;color:#111;margin-bottom:.2rem}
-.sc-art{font-size:.85rem;color:var(--muted);margin-bottom:.25rem;font-weight:600}
-.sc-art strong{color:#111;font-weight:700}
-.sc-contact{font-size:.75rem;color:var(--muted);margin-bottom:.35rem;font-weight:600}
+
+/* Kunst – stor og øverst */
+.sc-art-title{font-size:1rem;font-weight:700;color:#111;margin-bottom:.1rem}
+.sc-art-sub{font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:.5rem}
+
+/* Beløp */
 .sc-amounts{display:grid;grid-template-columns:repeat(4,1fr);gap:.3rem;margin-bottom:.5rem}
 .sc-amt{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:.3rem .35rem;text-align:center}
 .sc-amt .al{font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;font-weight:700}
 .sc-amt .av{font-size:.82rem;font-weight:700;color:#111}
+
+/* Levering + total */
 .sc-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:.4rem;margin-bottom:.5rem}
 .badge-lev{font-size:.7rem;padding:.2rem .5rem;border-radius:20px;background:#d4edda;color:var(--green);font-weight:700}
 .badge-no{font-size:.7rem;color:var(--muted);font-weight:600}
 .sc-total{font-size:1.05rem;font-weight:700;color:var(--accent)}
 
-.sc-actions{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.4rem}
+/* Status-knapper */
+.sc-actions{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
 .status-btn{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem .5rem;border-radius:8px;border:2px solid var(--border);font-family:'proxima-nova','Nunito',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;background:var(--white);color:var(--muted);transition:all .15s}
 .status-btn.ok-green{background:#d4edda;border-color:var(--green);color:var(--green)}
 .status-btn.ok-blue{background:#d0e4f7;border-color:var(--blue);color:var(--blue)}
-
 @media(min-width:600px){
-  .sc-actions{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.3rem}
+  .sc-actions{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.4rem}
   .status-btn{padding:.2rem .6rem;border-radius:20px;font-size:.72rem;border-width:1.5px;gap:.25rem}
 }
 
-.sc-edit-row{text-align:center}
+/* Kundeinfo – liten skrift nederst */
+.sc-customer{border-top:1px dashed var(--border);padding-top:.45rem;margin-top:.1rem}
+.sc-customer-name{font-size:.8rem;font-weight:700;color:#333;margin-bottom:.15rem}
+.sc-customer-detail{font-size:.72rem;color:var(--muted);font-weight:500;line-height:1.5}
+
+/* Bunnrad: kopier + rediger */
+.sc-bottom-row{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem;gap:.5rem}
+.sc-copy-btn{display:flex;align-items:center;gap:.3rem;background:none;border:1.5px solid var(--border);border-radius:6px;padding:.3rem .7rem;font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif;transition:all .15s}
+.sc-copy-btn:active,.sc-copy-btn.copied{background:#e8f5e9;border-color:var(--green);color:var(--green)}
 .sc-edit-btn{background:none;border:none;font-size:.75rem;color:#aaa;font-weight:600;cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif;text-decoration:underline;padding:.2rem}
 
+/* ── GRAND TOTALS ── */
 #grand-totals{display:none;background:var(--accent);color:#fff;border-radius:var(--r);padding:1rem;margin-top:.5rem}
 #grand-totals h3{font-size:.78rem;font-weight:700;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem}
 .gt-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin-bottom:.6rem}
@@ -90,6 +106,7 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 .gt-foot span{font-size:.82rem;opacity:.8;font-weight:600}
 .gt-foot strong{font-size:1.4rem;font-weight:700}
 
+/* ── MODAL ── */
 #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;overflow-y:auto;padding:1rem}
 #modal-overlay.open{display:flex;align-items:flex-start;justify-content:center}
 #modal{background:var(--white);border-radius:var(--r);width:100%;max-width:480px;padding:1.4rem;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.25)}
@@ -190,7 +207,6 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
       <button id="modal-close">×</button>
     </div>
     <div class="fgrid">
-      <!-- Tidspunkt øverst i modal -->
       <div class="fcol2">
         <span class="lbl">Tidspunkt for salget</span>
         <input type="datetime-local" id="m-dato">
@@ -266,8 +282,7 @@ function setMode(m){
   var dr=document.getElementById('datetime-row');
   if(m==='gammelt'){
     dr.classList.add('visible');
-    var now=new Date();
-    now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
+    var now=new Date();now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
     document.getElementById('f-dato').value=now.toISOString().slice(0,16);
   } else {
     dr.classList.remove('visible');
@@ -277,17 +292,35 @@ function setMode(m){
 
 function n(id){return parseFloat(document.getElementById(id).value)||0;}
 function kr(v){return(v||0).toLocaleString('nb-NO')+' kr';}
-function onr(n){return'2026-'+String(n).padStart(3,'0');}
+function onr(num){return'2026-'+String(num).padStart(3,'0');}
 function fmt(iso){var d=new Date(iso);return d.toLocaleDateString('nb-NO',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit'});}
-
-/* Konverter ISO til datetime-local-format */
-function toLocalInput(iso){
-  var d=new Date(iso);
-  d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
-  return d.toISOString().slice(0,16);
-}
-
+function toLocalInput(iso){var d=new Date(iso);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);}
 function calcT(p){var t=n(p+'pris')+n(p+'bkh')+n(p+'ramme')+n(p+'frakt');document.getElementById(p+'total').value=t>0?t:'';}
+
+/* ── KVITTERING – tilpass teksten her ── */
+function lagKvittering(s){
+  var linjer=[
+    'Soli Brug Fredrikstad',
+    'Ordrenummer: '+onr(s.ordrenummer),
+    '',
+    'Kunstner: '+(s.kunstner||'—'),
+    'Verk:     '+(s.tittel||'—'),
+    '',
+    'Pris:     '+kr(s.pris),
+    (s.bkh   ? 'BKH 5%:   '+kr(s.bkh)   : null),
+    (s.ramme  ? 'Ramme:    '+kr(s.ramme)  : null),
+    (s.frakt  ? 'Frakt:    '+kr(s.frakt)  : null),
+    '─────────────────────',
+    'Totalt:   '+kr(s.total),
+    '',
+    s.levering ? '🚚 Leveres til: '+(s.adresse||'—') : 'Hentes',
+    '',
+    'Tusen takk for kjøpet!',
+    'Med vennlig hilsen',
+    'Soli Brug Fredrikstad'
+  ];
+  return linjer.filter(function(l){return l!==null;}).join('\n');
+}
 
 function init(){
   document.getElementById('f-pris').addEventListener('input',function(){
@@ -309,25 +342,61 @@ function init(){
 function makeCard(s){
   var d=document.createElement('div');
   d.className='sale-card';
+
+  var kontakt=[s.telefon,s.epost].filter(Boolean).join(' · ');
+
   d.innerHTML=
+    /* Topplinje */
     '<div class="sc-top"><span class="sc-nr">'+onr(s.ordrenummer)+'</span><span class="sc-time">'+fmt(s.created_at)+'</span></div>'+
-    '<div class="sc-name">'+(s.navn||'—')+'</div>'+
-    '<div class="sc-art"><strong>'+(s.kunstner||'—')+'</strong>'+(s.tittel?' · '+s.tittel:'')+'</div>'+
-    ((s.telefon||s.epost||s.adresse)?'<div class="sc-contact">'+[s.telefon,s.epost,s.adresse].filter(Boolean).join(' · ')+'</div>':'')+
+
+    /* KUNST – øverst, størst */
+    '<div class="sc-art-title">'+(s.kunstner||'—')+(s.tittel?' – <em style="font-weight:500">'+s.tittel+'</em>':'')+'</div>'+
+    '<div class="sc-art-sub">'+(s.tittel?'':'Ingen tittel')+'</div>'+
+
+    /* Beløp */
     '<div class="sc-amounts">'+amt('Pris',s.pris)+amt('BKH 5%',s.bkh)+amt('Ramme',s.ramme)+amt('Frakt',s.frakt)+'</div>'+
+
+    /* Levering + total */
     '<div class="sc-foot">'+
       (s.levering?'<span class="badge-lev">🚚 Levering</span>':'<span class="badge-no">Hentes</span>')+
       '<span class="sc-total">'+kr(s.total)+'</span>'+
     '</div>'+
+
+    /* Status-knapper */
     '<div class="sc-actions">'+
       '<button class="status-btn'+(s.hentet?' ok-green':'')+'" data-action="hentet">'+(s.hentet?'✅':'☐')+' Hentet</button>'+
       '<button class="status-btn'+(s.faktura_sendt?' ok-blue':'')+'" data-action="faktura">'+(s.faktura_sendt?'✅':'☐')+' Faktura sendt</button>'+
     '</div>'+
-    '<div class="sc-edit-row"><button class="sc-edit-btn">✏️ Rediger</button></div>';
+
+    /* Kundeinfo – liten skrift nederst */
+    '<div class="sc-customer">'+
+      '<div class="sc-customer-name">'+(s.navn||'—')+'</div>'+
+      '<div class="sc-customer-detail">'+
+        (kontakt?kontakt+'<br>':'')+
+        (s.adresse?s.adresse:'')+
+      '</div>'+
+    '</div>'+
+
+    /* Bunnrad */
+    '<div class="sc-bottom-row">'+
+      '<button class="sc-copy-btn" data-action="copy">📋 Kopier kvittering</button>'+
+      '<button class="sc-edit-btn" data-action="edit">✏️ Rediger</button>'+
+    '</div>';
 
   d.querySelector('[data-action=hentet]').addEventListener('click',function(e){e.stopPropagation();toggle(s,'hentet',this);});
   d.querySelector('[data-action=faktura]').addEventListener('click',function(e){e.stopPropagation();toggle(s,'faktura_sendt',this);});
-  d.querySelector('.sc-edit-btn').addEventListener('click',function(e){e.stopPropagation();openModal(s);});
+  d.querySelector('[data-action=edit]').addEventListener('click',function(e){e.stopPropagation();openModal(s);});
+  d.querySelector('[data-action=copy]').addEventListener('click',function(e){
+    e.stopPropagation();
+    var btn=this;
+    var tekst=lagKvittering(s);
+    navigator.clipboard.writeText(tekst).then(function(){
+      btn.textContent='✅ Kopiert!';
+      btn.classList.add('copied');
+      setTimeout(function(){btn.innerHTML='📋 Kopier kvittering';btn.classList.remove('copied');},2500);
+    });
+  });
+
   return d;
 }
 
@@ -384,9 +453,7 @@ async function submitSale(){
 function openModal(s){
   editId=s.id;
   document.getElementById('modal-title').textContent='Rediger – '+onr(s.ordrenummer);
-  /* Fyll inn tidspunkt */
   document.getElementById('m-dato').value=toLocalInput(s.created_at);
-  /* Fyll inn øvrige felt */
   ['navn','telefon','epost','adresse','kunstner','tittel','pris','bkh','ramme','frakt','total'].forEach(function(k){document.getElementById('m-'+k).value=s[k]||'';});
   document.getElementById('m-levering').checked=!!s.levering;
   document.getElementById('modal-msg').textContent='';
@@ -396,8 +463,7 @@ function openModal(s){
 
 function closeModal(){
   document.getElementById('modal-overlay').classList.remove('open');
-  document.body.style.overflow='';
-  editId=null;
+  document.body.style.overflow='';editId=null;
 }
 
 async function saveSale(){
@@ -405,24 +471,13 @@ async function saveSale(){
   var btn=document.getElementById('btn-save');
   var msg=document.getElementById('modal-msg');
   btn.disabled=true;btn.textContent='Lagrer…';
-  var row={
-    navn:document.getElementById('m-navn').value.trim(),
-    telefon:document.getElementById('m-telefon').value.trim(),
-    epost:document.getElementById('m-epost').value.trim(),
-    adresse:document.getElementById('m-adresse').value.trim(),
-    levering:document.getElementById('m-levering').checked,
-    kunstner:document.getElementById('m-kunstner').value.trim(),
-    tittel:document.getElementById('m-tittel').value.trim(),
-    pris:n('m-pris'),bkh:n('m-bkh'),ramme:n('m-ramme'),frakt:n('m-frakt'),total:n('m-total')
-  };
-  /* Oppdater tidspunkt */
+  var row={navn:document.getElementById('m-navn').value.trim(),telefon:document.getElementById('m-telefon').value.trim(),epost:document.getElementById('m-epost').value.trim(),adresse:document.getElementById('m-adresse').value.trim(),levering:document.getElementById('m-levering').checked,kunstner:document.getElementById('m-kunstner').value.trim(),tittel:document.getElementById('m-tittel').value.trim(),pris:n('m-pris'),bkh:n('m-bkh'),ramme:n('m-ramme'),frakt:n('m-frakt'),total:n('m-total')};
   var dv=document.getElementById('m-dato').value;
   if(dv)row.created_at=new Date(dv).toISOString();
   var r=await sb.from('salg').update(row).eq('id',editId);
   btn.disabled=false;btn.textContent='Lagre endringer';
   if(r.error){msg.style.color='var(--danger)';msg.textContent='Feil: '+r.error.message;return;}
-  closeModal();
-  loadSales();
+  closeModal();loadSales();
 }
 </script>
 </body>
