@@ -50,31 +50,21 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 
 #form-msg{text-align:center;font-size:.85rem;margin-top:.5rem;min-height:1.2em;font-weight:600}
 
-/* ── SALE CARD ── */
 .sale-card{background:#faf8f5;border:1px solid var(--border);border-radius:8px;padding:.9rem;margin-bottom:.7rem}
-
-/* Topplinje: ordrenr + tid */
 .sc-top{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.55rem}
 .sc-nr{font-size:.7rem;font-weight:700;color:#fff;background:var(--accent);padding:.2rem .55rem;border-radius:20px;white-space:nowrap}
 .sc-time{font-size:.68rem;color:var(--muted);white-space:nowrap;font-weight:600}
-
-/* Kunst – stor og øverst */
 .sc-art-title{font-size:1rem;font-weight:700;color:#111;margin-bottom:.1rem}
 .sc-art-sub{font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:.5rem}
-
-/* Beløp */
 .sc-amounts{display:grid;grid-template-columns:repeat(4,1fr);gap:.3rem;margin-bottom:.5rem}
 .sc-amt{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:.3rem .35rem;text-align:center}
 .sc-amt .al{font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;font-weight:700}
 .sc-amt .av{font-size:.82rem;font-weight:700;color:#111}
-
-/* Levering + total */
 .sc-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:.4rem;margin-bottom:.5rem}
 .badge-lev{font-size:.7rem;padding:.2rem .5rem;border-radius:20px;background:#d4edda;color:var(--green);font-weight:700}
 .badge-no{font-size:.7rem;color:var(--muted);font-weight:600}
 .sc-total{font-size:1.05rem;font-weight:700;color:var(--accent)}
 
-/* Status-knapper */
 .sc-actions{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
 .status-btn{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem .5rem;border-radius:8px;border:2px solid var(--border);font-family:'proxima-nova','Nunito',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;background:var(--white);color:var(--muted);transition:all .15s}
 .status-btn.ok-green{background:#d4edda;border-color:var(--green);color:var(--green)}
@@ -84,18 +74,17 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
   .status-btn{padding:.2rem .6rem;border-radius:20px;font-size:.72rem;border-width:1.5px;gap:.25rem}
 }
 
-/* Kundeinfo – liten skrift nederst */
 .sc-customer{border-top:1px dashed var(--border);padding-top:.45rem;margin-top:.1rem}
 .sc-customer-name{font-size:.8rem;font-weight:700;color:#333;margin-bottom:.15rem}
-.sc-customer-detail{font-size:.72rem;color:var(--muted);font-weight:500;line-height:1.5}
+.sc-customer-detail{font-size:.72rem;color:var(--muted);font-weight:500;line-height:1.6}
+.sc-customer-detail a{color:var(--accent);font-weight:700;text-decoration:none}
+.sc-customer-detail a:hover{text-decoration:underline}
 
-/* Bunnrad: kopier + rediger */
 .sc-bottom-row{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem;gap:.5rem}
 .sc-copy-btn{display:flex;align-items:center;gap:.3rem;background:none;border:1.5px solid var(--border);border-radius:6px;padding:.3rem .7rem;font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif;transition:all .15s}
-.sc-copy-btn:active,.sc-copy-btn.copied{background:#e8f5e9;border-color:var(--green);color:var(--green)}
+.sc-copy-btn.copied{background:#e8f5e9;border-color:var(--green);color:var(--green)}
 .sc-edit-btn{background:none;border:none;font-size:.75rem;color:#aaa;font-weight:600;cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif;text-decoration:underline;padding:.2rem}
 
-/* ── GRAND TOTALS ── */
 #grand-totals{display:none;background:var(--accent);color:#fff;border-radius:var(--r);padding:1rem;margin-top:.5rem}
 #grand-totals h3{font-size:.78rem;font-weight:700;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem}
 .gt-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin-bottom:.6rem}
@@ -106,7 +95,6 @@ header .hsub{font-size:.7rem;opacity:.7;font-weight:400}
 .gt-foot span{font-size:.82rem;opacity:.8;font-weight:600}
 .gt-foot strong{font-size:1.4rem;font-weight:700}
 
-/* ── MODAL ── */
 #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;overflow-y:auto;padding:1rem}
 #modal-overlay.open{display:flex;align-items:flex-start;justify-content:center}
 #modal{background:var(--white);border-radius:var(--r);width:100%;max-width:480px;padding:1.4rem;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.25)}
@@ -297,7 +285,6 @@ function fmt(iso){var d=new Date(iso);return d.toLocaleDateString('nb-NO',{day:'
 function toLocalInput(iso){var d=new Date(iso);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);}
 function calcT(p){var t=n(p+'pris')+n(p+'bkh')+n(p+'ramme')+n(p+'frakt');document.getElementById(p+'total').value=t>0?t:'';}
 
-/* ── KVITTERING – tilpass teksten her ── */
 function lagKvittering(s){
   var linjer=[
     'Soli Brug Fredrikstad',
@@ -307,13 +294,13 @@ function lagKvittering(s){
     'Verk:     '+(s.tittel||'—'),
     '',
     'Pris:     '+kr(s.pris),
-    (s.bkh   ? 'BKH 5%:   '+kr(s.bkh)   : null),
-    (s.ramme  ? 'Ramme:    '+kr(s.ramme)  : null),
-    (s.frakt  ? 'Frakt:    '+kr(s.frakt)  : null),
+    (s.bkh  ?'BKH 5%:   '+kr(s.bkh)  :null),
+    (s.ramme ?'Ramme:    '+kr(s.ramme) :null),
+    (s.frakt ?'Frakt:    '+kr(s.frakt) :null),
     '─────────────────────',
     'Totalt:   '+kr(s.total),
     '',
-    s.levering ? '🚚 Leveres til: '+(s.adresse||'—') : 'Hentes',
+    s.levering?'🚚 Leveres til: '+(s.adresse||'—'):'Hentes',
     '',
     'Tusen takk for kjøpet!',
     'Med vennlig hilsen',
@@ -343,41 +330,33 @@ function makeCard(s){
   var d=document.createElement('div');
   d.className='sale-card';
 
-  var kontakt=[s.telefon,s.epost].filter(Boolean).join(' · ');
+  /* Klikkbart telefonnummer og e-post */
+  var kontaktHtml='';
+  if(s.telefon) kontaktHtml+='<a href="tel:'+s.telefon+'">'+s.telefon+'</a>';
+  if(s.telefon&&s.epost) kontaktHtml+=' · ';
+  if(s.epost) kontaktHtml+='<a href="mailto:'+s.epost+'">'+s.epost+'</a>';
 
   d.innerHTML=
-    /* Topplinje */
     '<div class="sc-top"><span class="sc-nr">'+onr(s.ordrenummer)+'</span><span class="sc-time">'+fmt(s.created_at)+'</span></div>'+
-
-    /* KUNST – øverst, størst */
     '<div class="sc-art-title">'+(s.kunstner||'—')+(s.tittel?' – <em style="font-weight:500">'+s.tittel+'</em>':'')+'</div>'+
-    '<div class="sc-art-sub">'+(s.tittel?'':'Ingen tittel')+'</div>'+
-
-    /* Beløp */
+    '<div class="sc-art-sub">&nbsp;</div>'+
     '<div class="sc-amounts">'+amt('Pris',s.pris)+amt('BKH 5%',s.bkh)+amt('Ramme',s.ramme)+amt('Frakt',s.frakt)+'</div>'+
-
-    /* Levering + total */
     '<div class="sc-foot">'+
       (s.levering?'<span class="badge-lev">🚚 Levering</span>':'<span class="badge-no">Hentes</span>')+
       '<span class="sc-total">'+kr(s.total)+'</span>'+
     '</div>'+
-
-    /* Status-knapper */
     '<div class="sc-actions">'+
       '<button class="status-btn'+(s.hentet?' ok-green':'')+'" data-action="hentet">'+(s.hentet?'✅':'☐')+' Hentet</button>'+
       '<button class="status-btn'+(s.faktura_sendt?' ok-blue':'')+'" data-action="faktura">'+(s.faktura_sendt?'✅':'☐')+' Faktura sendt</button>'+
     '</div>'+
-
-    /* Kundeinfo – liten skrift nederst */
     '<div class="sc-customer">'+
       '<div class="sc-customer-name">'+(s.navn||'—')+'</div>'+
       '<div class="sc-customer-detail">'+
-        (kontakt?kontakt+'<br>':'')+
+        (kontaktHtml?kontaktHtml:'') +
+        (kontaktHtml&&s.adresse?'<br>':'')+
         (s.adresse?s.adresse:'')+
       '</div>'+
     '</div>'+
-
-    /* Bunnrad */
     '<div class="sc-bottom-row">'+
       '<button class="sc-copy-btn" data-action="copy">📋 Kopier kvittering</button>'+
       '<button class="sc-edit-btn" data-action="edit">✏️ Rediger</button>'+
@@ -389,8 +368,7 @@ function makeCard(s){
   d.querySelector('[data-action=copy]').addEventListener('click',function(e){
     e.stopPropagation();
     var btn=this;
-    var tekst=lagKvittering(s);
-    navigator.clipboard.writeText(tekst).then(function(){
+    navigator.clipboard.writeText(lagKvittering(s)).then(function(){
       btn.textContent='✅ Kopiert!';
       btn.classList.add('copied');
       setTimeout(function(){btn.innerHTML='📋 Kopier kvittering';btn.classList.remove('copied');},2500);
