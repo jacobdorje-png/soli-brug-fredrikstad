@@ -285,26 +285,25 @@ function fmt(iso){var d=new Date(iso);return d.toLocaleDateString('nb-NO',{day:'
 function toLocalInput(iso){var d=new Date(iso);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);}
 function calcT(p){var t=n(p+'pris')+n(p+'bkh')+n(p+'ramme')+n(p+'frakt');document.getElementById(p+'total').value=t>0?t:'';}
 
+/* ── KVITTERING ── */
 function lagKvittering(s){
   var linjer=[
     'Soli Brug Fredrikstad',
     'Ordrenummer: '+onr(s.ordrenummer),
     '',
     'Kunstner: '+(s.kunstner||'—'),
-    'Verk:     '+(s.tittel||'—'),
+    'Kunstverk: '+(s.tittel||'—'),
+    'Pris: '+kr(s.pris),
+    '5% BKH: '+kr(s.bkh),
+    (s.ramme ? 'Ramme: '+kr(s.ramme) : null),
     '',
-    'Pris:     '+kr(s.pris),
-    (s.bkh  ?'BKH 5%:   '+kr(s.bkh)  :null),
-    (s.ramme ?'Ramme:    '+kr(s.ramme) :null),
-    (s.frakt ?'Frakt:    '+kr(s.frakt) :null),
-    '─────────────────────',
-    'Totalt:   '+kr(s.total),
+    'Totalt: '+kr(s.total),
     '',
-    s.levering?'🚚 Leveres til: '+(s.adresse||'—'):'Hentes',
+    'Bildet kan hentes på Soli Brug Fredrikstad tidligst: ',
     '',
-    'Tusen takk for kjøpet!',
-    'Med vennlig hilsen',
-    'Soli Brug Fredrikstad'
+    'Tusen takk for handelen!',
+    'Mvh:',
+    'Soli Brug'
   ];
   return linjer.filter(function(l){return l!==null;}).join('\n');
 }
@@ -329,8 +328,6 @@ function init(){
 function makeCard(s){
   var d=document.createElement('div');
   d.className='sale-card';
-
-  /* Klikkbart telefonnummer og e-post */
   var kontaktHtml='';
   if(s.telefon) kontaktHtml+='<a href="tel:'+s.telefon+'">'+s.telefon+'</a>';
   if(s.telefon&&s.epost) kontaktHtml+=' · ';
@@ -352,9 +349,9 @@ function makeCard(s){
     '<div class="sc-customer">'+
       '<div class="sc-customer-name">'+(s.navn||'—')+'</div>'+
       '<div class="sc-customer-detail">'+
-        (kontaktHtml?kontaktHtml:'') +
+        (kontaktHtml||'')+
         (kontaktHtml&&s.adresse?'<br>':'')+
-        (s.adresse?s.adresse:'')+
+        (s.adresse||'')+
       '</div>'+
     '</div>'+
     '<div class="sc-bottom-row">'+
@@ -374,7 +371,6 @@ function makeCard(s){
       setTimeout(function(){btn.innerHTML='📋 Kopier kvittering';btn.classList.remove('copied');},2500);
     });
   });
-
   return d;
 }
 
