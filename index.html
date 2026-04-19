@@ -24,23 +24,10 @@ input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0
 input[readonly]{background:#e8e2da;color:var(--muted)}
 .total-inp{background:var(--accent)!important;color:#fff!important;font-weight:700!important;border-color:var(--accent)!important;font-size:1.1rem!important}
 
-/* Notat-textarea */
-textarea.notat-inp{
-  width:100%;padding:.75rem 1rem;
-  border:1.5px solid var(--border);border-radius:10px;
-  font-family:'proxima-nova','Nunito',sans-serif;font-size:16px;color:#111;font-weight:500;
-  background:#fdf9f5;-webkit-appearance:none;box-sizing:border-box;
-  resize:vertical;min-height:80px;line-height:1.5;
-}
+textarea.notat-inp{width:100%;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-family:'proxima-nova','Nunito',sans-serif;font-size:16px;color:#111;font-weight:500;background:#fdf9f5;-webkit-appearance:none;box-sizing:border-box;resize:vertical;min-height:80px;line-height:1.5}
 textarea.notat-inp:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(122,92,58,.12)}
 
-/* Notat på kortet */
-.sc-notat{
-  background:#fef9f0;border:1px solid #e8d8b8;border-radius:8px;
-  padding:.5rem .75rem;margin-bottom:.6rem;
-  font-size:.8rem;font-weight:500;color:#5a4020;line-height:1.5;
-  white-space:pre-wrap;
-}
+.sc-notat{background:#fef9f0;border:1px solid #e8d8b8;border-radius:8px;padding:.5rem .75rem;margin-bottom:.6rem;font-size:.8rem;font-weight:500;color:#5a4020;line-height:1.5;white-space:pre-wrap}
 .sc-notat-lbl{font-size:.62rem;font-weight:700;color:#9a7040;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem}
 
 .tittel-row{display:flex;gap:.5rem;align-items:flex-end}
@@ -290,7 +277,10 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
         <div class="gt-item"><div class="gl">Ramme</div><div class="gv" id="gt-ramme"></div></div>
         <div class="gt-item"><div class="gl">Frakt</div><div class="gv" id="gt-frakt"></div></div>
       </div>
-      <div class="gt-foot"><span>Totalomsetning</span><strong id="gt-total"></strong></div>
+      <div class="gt-foot">
+        <span>Totalomsetning eks. BKH</span>
+        <strong id="gt-total"></strong>
+      </div>
     </div>
   </div>
 </div>
@@ -524,7 +514,18 @@ function renderSalg(){
     });
   }
 
-  var gt=raaData.reduce(function(a,s){return{pris:a.pris+(s.pris||0),bkh:a.bkh+(s.bkh||0),ramme:a.ramme+(s.ramme||0),frakt:a.frakt+(s.frakt||0),total:a.total+(s.total||0)};},{pris:0,bkh:0,ramme:0,frakt:0,total:0});
+  /* ── TOTALSUM: vis BKH separat, totalomsetning UTEN BKH ── */
+  var gt=raaData.reduce(function(a,s){
+    return{
+      pris:  a.pris  +(s.pris  ||0),
+      bkh:   a.bkh   +(s.bkh   ||0),
+      ramme: a.ramme +(s.ramme ||0),
+      frakt: a.frakt +(s.frakt ||0),
+      /* total = pris + ramme + frakt (UTEN BKH) */
+      total: a.total +(s.total ||0)-(s.bkh||0)
+    };
+  },{pris:0,bkh:0,ramme:0,frakt:0,total:0});
+
   document.getElementById('gt-pris').textContent=kr(gt.pris);
   document.getElementById('gt-bkh').textContent=kr(gt.bkh);
   document.getElementById('gt-ramme').textContent=kr(gt.ramme);
@@ -543,11 +544,7 @@ function makeCard(s,erGruppert){
   var artHtml=erGruppert
     ?'<div class="sc-art-title-grouped">'+(s.kunstner||'—')+(s.tittel?' – <em style="font-weight:500">'+s.tittel+'</em>':'')+edisjonChip+'</div>'
     :'<div class="sc-art-title">'+(s.kunstner||'—')+(s.tittel?' – <em style="font-weight:500">'+s.tittel+'</em>':'')+edisjonChip+'</div>';
-
-  /* Notat-boks – vises kun hvis det finnes et notat */
-  var notatHtml=s.notat
-    ?'<div class="sc-notat"><div class="sc-notat-lbl">ℹ️ Info om salget</div>'+s.notat+'</div>'
-    :'';
+  var notatHtml=s.notat?'<div class="sc-notat"><div class="sc-notat-lbl">ℹ️ Info om salget</div>'+s.notat+'</div>':'';
 
   d.innerHTML=
     '<div class="sc-top"><span class="sc-nr">'+onr(s.ordrenummer)+'</span><span class="sc-time">'+fmt(s.created_at)+'</span></div>'+
