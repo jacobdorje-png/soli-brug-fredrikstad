@@ -19,7 +19,7 @@ body{background:#f0ebe3;color:#111;font-family:'proxima-nova','Nunito',sans-seri
 .card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:1.75rem 1.5rem;width:100%;max-width:360px;box-shadow:0 4px 20px rgba(0,0,0,.1);display:flex;flex-direction:column;gap:1.1rem}
 
 .lbl{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.3rem;display:block}
-input[type=text],input[type=email],input[type=tel],input[type=number],input[type=password],input[type=datetime-local]{width:100%;min-height:var(--touch);padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-family:'proxima-nova','Nunito',sans-serif;font-size:16px;color:#111;font-weight:600;background:#faf8f5;-webkit-appearance:none;box-sizing:border-box}
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=password],input[type=datetime-local],input[type=search]{width:100%;min-height:var(--touch);padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-family:'proxima-nova','Nunito',sans-serif;font-size:16px;color:#111;font-weight:600;background:#faf8f5;-webkit-appearance:none;box-sizing:border-box}
 input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(122,92,58,.12)}
 input[readonly]{background:#e8e2da;color:var(--muted)}
 .total-inp{background:var(--accent)!important;color:#fff!important;font-weight:700!important;border-color:var(--accent)!important;font-size:1.1rem!important}
@@ -78,6 +78,15 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 .ftab{min-height:38px;padding:.4rem 1rem;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-family:'proxima-nova','Nunito',sans-serif;font-size:.82rem;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap;display:flex;align-items:center}
 .ftab.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .ftab:active{opacity:.8}
+
+/* ── SØKEFELT ── */
+.search-wrap{margin:0 .85rem .5rem;position:relative}
+.search-wrap .search-icon{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);font-size:1.1rem;pointer-events:none;opacity:.5}
+.search-wrap input{padding-left:2.5rem;padding-right:2.5rem;background:var(--white);border-color:var(--border)}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-clear{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--muted);display:none;padding:.2rem;line-height:1}
+.search-clear.vis{display:block}
+.search-info{font-size:.78rem;color:var(--muted);font-weight:600;padding:.2rem .1rem .4rem;text-align:center}
 
 .sales-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.7rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
 .excel-btn{display:inline-flex;align-items:center;gap:.35rem;background:none;border:1.5px solid var(--green);color:var(--green);padding:.4rem .8rem;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif;min-height:38px}
@@ -257,10 +266,20 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
     <div id="form-msg"></div>
   </div>
 
+  <!-- FILTER TABS -->
   <div class="filter-wrap">
     <div class="filter-tabs" id="filter-tabs"></div>
   </div>
 
+  <!-- SØKEFELT -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="search" id="search-input" placeholder="Søk på navn, kunstner, tittel, telefon…">
+    <button class="search-clear" id="search-clear">✕</button>
+  </div>
+  <div class="search-info" id="search-info" style="display:none"></div>
+
+  <!-- SALGSLISTE -->
   <div class="section">
     <div class="sales-top">
       <div class="stitle" id="sales-title">Alle salg</div>
@@ -285,6 +304,7 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
   </div>
 </div>
 
+<!-- EDIT MODAL -->
 <div id="modal-overlay">
   <div id="modal">
     <div class="modal-head">
@@ -351,7 +371,7 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 var SURL='https://nyievdrggepyljysvggh.supabase.co';
 var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55aWV2ZHJnZ2VweWxqeXN2Z2doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTAwNTAsImV4cCI6MjA5MTk4NjA1MH0.JG9sU89I4gMBBarPXE21R9pgCQl-gXertMKk9m-zGd8';
 var CODE='SoliBrugFredrikstad';
-var sb=null,editId=null,mode='nytt',alleSalg=[],aktivFilter='alle';
+var sb=null,editId=null,mode='nytt',alleSalg=[],aktivFilter='alle',sokeTekst='';
 
 function erUX(info){return(info||'').toUpperCase().trim()==='UX';}
 function normTittel(t){return(t||'').trim().toLowerCase().replace(/\s+/g,' ');}
@@ -369,6 +389,15 @@ function sorterGruppe(salg){
   ux.sort(function(a,b){return(b.ordrenummer||0)-(a.ordrenummer||0);});
   andre.sort(function(a,b){return(b.ordrenummer||0)-(a.ordrenummer||0);});
   return ux.concat(andre);
+}
+
+/* ── SØKEFILTER ── */
+function sokFilter(s,q){
+  if(!q)return true;
+  var t=q.toLowerCase();
+  return [s.navn,s.kunstner,s.tittel,s.edisjon,s.telefon,s.epost,s.adresse,s.ramme_info,s.notat,
+          s.ordrenummer?'2026-'+String(s.ordrenummer).padStart(3,'0'):'']
+    .some(function(v){return v&&String(v).toLowerCase().indexOf(t)>-1;});
 }
 
 function loadSB(cb){
@@ -455,16 +484,21 @@ function byggFilterTabs(){
   var alle=document.createElement('button');
   alle.className='ftab'+(aktivFilter==='alle'?' active':'');
   alle.textContent='Alle ('+alleSalg.length+')';
-  alle.addEventListener('click',function(){aktivFilter='alle';renderSalg();byggFilterTabs();});
+  alle.addEventListener('click',function(){aktivFilter='alle';sokeTekst='';document.getElementById('search-input').value='';oppdaterSokeUI();renderSalg();byggFilterTabs();});
   wrap.appendChild(alle);
   kunstnere.forEach(function(k){
     var antall=alleSalg.filter(function(s){return s.kunstner===k;}).length;
     var btn=document.createElement('button');
     btn.className='ftab'+(aktivFilter===k?' active':'');
     btn.textContent=k+' ('+antall+')';
-    btn.addEventListener('click',function(){aktivFilter=k;renderSalg();byggFilterTabs();});
+    btn.addEventListener('click',function(){aktivFilter=k;sokeTekst='';document.getElementById('search-input').value='';oppdaterSokeUI();renderSalg();byggFilterTabs();});
     wrap.appendChild(btn);
   });
+}
+
+function oppdaterSokeUI(){
+  var harSok=sokeTekst.length>0;
+  document.getElementById('search-clear').className='search-clear'+(harSok?' vis':'');
 }
 
 async function loadSales(){
@@ -481,14 +515,37 @@ async function loadSales(){
 
 function renderSalg(){
   var erAlle=aktivFilter==='alle';
-  var raaData=erAlle?alleSalg:alleSalg.filter(function(s){return s.kunstner===aktivFilter;});
+
+  /* Filtrer på kunstner */
+  var basData=erAlle?alleSalg:alleSalg.filter(function(s){return s.kunstner===aktivFilter;});
+
+  /* Filtrer på søketekst */
+  var raaData=sokeTekst?basData.filter(function(s){return sokFilter(s,sokeTekst);}):basData;
+
   var list=document.getElementById('sales-list');list.innerHTML='';
+
+  /* Søke-info */
+  var infoEl=document.getElementById('search-info');
+  if(sokeTekst){
+    infoEl.style.display='block';
+    infoEl.textContent='Fant '+raaData.length+' treff på «'+sokeTekst+'»';
+  } else {
+    infoEl.style.display='none';
+  }
+
   document.getElementById('sales-title').textContent=erAlle?'Alle salg':aktivFilter;
   document.getElementById('excel-btn').style.display=raaData.length?'inline-flex':'none';
-  if(!raaData.length){document.getElementById('empty').style.display='block';document.getElementById('grand-totals').style.display='none';return;}
+
+  if(!raaData.length){
+    document.getElementById('empty').style.display='block';
+    document.getElementById('empty').textContent=sokeTekst?'Ingen treff på «'+sokeTekst+'»':'Ingen salg registrert ennå.';
+    document.getElementById('grand-totals').style.display='none';
+    return;
+  }
   document.getElementById('empty').style.display='none';
 
-  if(erAlle){
+  if(erAlle||sokeTekst){
+    /* Ved søk eller alle: flat liste uten gruppering */
     raaData.forEach(function(s){list.appendChild(makeCard(s,false));});
   } else {
     var data=sorterKunstnerData(raaData);
@@ -514,18 +571,9 @@ function renderSalg(){
     });
   }
 
-  /* ── TOTALSUM: vis BKH separat, totalomsetning UTEN BKH ── */
   var gt=raaData.reduce(function(a,s){
-    return{
-      pris:  a.pris  +(s.pris  ||0),
-      bkh:   a.bkh   +(s.bkh   ||0),
-      ramme: a.ramme +(s.ramme ||0),
-      frakt: a.frakt +(s.frakt ||0),
-      /* total = pris + ramme + frakt (UTEN BKH) */
-      total: a.total +(s.total ||0)-(s.bkh||0)
-    };
+    return{pris:a.pris+(s.pris||0),bkh:a.bkh+(s.bkh||0),ramme:a.ramme+(s.ramme||0),frakt:a.frakt+(s.frakt||0),total:a.total+(s.total||0)-(s.bkh||0)};
   },{pris:0,bkh:0,ramme:0,frakt:0,total:0});
-
   document.getElementById('gt-pris').textContent=kr(gt.pris);
   document.getElementById('gt-bkh').textContent=kr(gt.bkh);
   document.getElementById('gt-ramme').textContent=kr(gt.ramme);
@@ -613,9 +661,10 @@ function lagKvittering(s){
 
 function exportExcel(){
   var erAlle=aktivFilter==='alle';
-  var data=erAlle?alleSalg:alleSalg.filter(function(s){return s.kunstner===aktivFilter;});
+  var basData=erAlle?alleSalg:alleSalg.filter(function(s){return s.kunstner===aktivFilter;});
+  var data=sokeTekst?basData.filter(function(s){return sokFilter(s,sokeTekst);}):basData;
   if(!data.length)return;
-  var filnavn=(erAlle?'Alle_salg':aktivFilter.replace(/\s/g,'_'))+'.csv';
+  var filnavn=(erAlle?'Alle_salg':aktivFilter.replace(/\s/g,'_'))+(sokeTekst?'_søk':'')+'.csv';
   var rows=[['Ordrenr','Dato','Navn','Telefon','E-post','Adresse','Levering','Kunstner','Tittel','Edisjon','Pris','BKH','Ramme','Rammeinfo','Frakt','Total','Hentet','Faktura sendt','Info om salget']];
   data.forEach(function(s){rows.push([onr(s.ordrenummer),fmt(s.created_at),s.navn||'',s.telefon||'',s.epost||'',s.adresse||'',s.levering?'Ja':'Nei',s.kunstner||'',s.tittel||'',s.edisjon||'',s.pris||0,s.bkh||0,s.ramme||0,s.ramme_info||'',s.frakt||0,s.total||0,s.hentet?'Ja':'Nei',s.faktura_sendt?'Ja':'Nei',s.notat||'']);});
   var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"';}).join(';');}).join('\r\n');
@@ -636,6 +685,21 @@ function init(){
   document.getElementById('btn-cancel').addEventListener('click',closeModal);
   document.getElementById('modal-close').addEventListener('click',closeModal);
   document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+  /* Søk */
+  document.getElementById('search-input').addEventListener('input',function(){
+    sokeTekst=this.value.trim();
+    oppdaterSokeUI();
+    renderSalg();
+  });
+  document.getElementById('search-clear').addEventListener('click',function(){
+    sokeTekst='';
+    document.getElementById('search-input').value='';
+    oppdaterSokeUI();
+    renderSalg();
+    document.getElementById('search-input').focus();
+  });
+
   loadSales();
 }
 
