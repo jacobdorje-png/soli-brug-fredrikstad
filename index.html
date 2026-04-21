@@ -72,7 +72,6 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 .checkbox-row label{font-size:1rem;cursor:pointer;font-weight:600;color:#111}
 #form-msg{text-align:center;font-size:.9rem;margin-top:.5rem;min-height:1.3em;font-weight:600}
 
-/* ── FILTER TABS ── */
 .filter-wrap{margin:.2rem .85rem .2rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .filter-wrap::-webkit-scrollbar{display:none}
 .filter-tabs{display:flex;gap:.45rem;padding:.25rem .05rem}
@@ -82,13 +81,10 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 .ftab.arkiv-tab.active{background:#9a7040;border-color:#9a7040;color:#fff}
 .ftab:active{opacity:.8}
 
-/* ── ARKIV HANDLINGSRAD ── */
 .arkiv-bar{margin:.2rem .85rem .2rem;display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
 .arkiv-bar-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .85rem;border-radius:8px;border:1.5px solid #9a7040;color:#9a7040;background:var(--white);font-family:'proxima-nova','Nunito',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;min-height:38px}
 .arkiv-bar-btn:active{opacity:.8}
-.arkiv-tilbake-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .85rem;border-radius:8px;border:1.5px solid var(--border);color:var(--muted);background:var(--white);font-family:'proxima-nova','Nunito',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;min-height:38px}
 
-/* ── SØKEFELT ── */
 .search-wrap{margin:0 .85rem .5rem;position:relative}
 .search-wrap .search-icon{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);font-size:1.1rem;pointer-events:none;opacity:.5}
 .search-wrap input{padding-left:2.5rem;padding-right:2.5rem;background:var(--white)}
@@ -100,7 +96,6 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 .excel-btn{display:inline-flex;align-items:center;gap:.35rem;background:none;border:1.5px solid var(--green);color:var(--green);padding:.4rem .8rem;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif;min-height:38px}
 .excel-btn:active{background:#e8f5e9}
 
-/* ── ARKIV GRUPPER ── */
 .arkiv-gruppe{margin-bottom:1.2rem}
 .arkiv-gruppe-header{display:flex;align-items:center;justify-content:space-between;padding:.6rem .85rem;background:#f5ede0;border:1px solid #d4b890;border-radius:10px;margin-bottom:.5rem;cursor:pointer}
 .arkiv-gruppe-navn{font-size:.95rem;font-weight:700;color:#7a5020}
@@ -117,8 +112,12 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 .verk-gruppe-salg{padding-left:.6rem;border-left:2px solid var(--border)}
 
 .sale-card{background:#faf8f5;border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:.75rem}
+/* Arkiverte kort: litt mer dempet */
+.sale-card.er-arkivert{opacity:.9;border-style:dashed}
+
 .sc-top{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.6rem}
 .sc-nr{font-size:.72rem;font-weight:700;color:#fff;background:var(--accent);padding:.25rem .6rem;border-radius:20px;white-space:nowrap}
+.sc-arkiv-chip{font-size:.65rem;font-weight:700;color:#9a7040;background:#f5ede0;border:1px solid #d4b890;border-radius:20px;padding:.15rem .5rem;white-space:nowrap}
 .sc-time{font-size:.7rem;color:var(--muted);font-weight:600}
 .sc-art-title{font-size:1.05rem;font-weight:700;color:#111;margin-bottom:.55rem;line-height:1.3}
 .sc-art-title-grouped{font-size:.95rem;font-weight:600;color:var(--muted);margin-bottom:.55rem;line-height:1.3}
@@ -149,11 +148,14 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 .contact-link{display:inline-flex;align-items:center;gap:.25rem;color:var(--accent);font-weight:700;cursor:pointer;background:none;border:none;font-family:'proxima-nova','Nunito',sans-serif;font-size:.78rem;padding:.1rem 0;text-decoration:none;min-height:36px}
 .contact-link:active{opacity:.7}
 
-.sc-bottom-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
-.sc-copy-btn{display:flex;align-items:center;gap:.35rem;background:none;border:1.5px solid var(--border);border-radius:8px;padding:.5rem .85rem;min-height:42px;font-size:.82rem;font-weight:700;color:var(--muted);cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif}
+/* Bunnrad med tre knapper */
+.sc-bottom-row{display:flex;align-items:center;gap:.4rem}
+.sc-copy-btn{display:flex;align-items:center;gap:.3rem;background:none;border:1.5px solid var(--border);border-radius:8px;padding:.5rem .75rem;min-height:42px;font-size:.78rem;font-weight:700;color:var(--muted);cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif;flex:1}
 .sc-copy-btn.copied{background:#e8f5e9;border-color:var(--green);color:var(--green)}
 .sc-copy-btn:active{opacity:.8}
-.sc-edit-btn{background:none;border:none;font-size:.82rem;color:#aaa;font-weight:600;cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif;text-decoration:underline;padding:.5rem .3rem;min-height:42px;display:flex;align-items:center}
+.sc-arkiver-btn{display:flex;align-items:center;gap:.3rem;background:none;border:1.5px solid #c8a870;border-radius:8px;padding:.5rem .75rem;min-height:42px;font-size:.78rem;font-weight:700;color:#9a7040;cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif}
+.sc-arkiver-btn:active{opacity:.8}
+.sc-edit-btn{background:none;border:none;font-size:.78rem;color:#aaa;font-weight:600;cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif;text-decoration:underline;padding:.5rem .25rem;min-height:42px;display:flex;align-items:center;white-space:nowrap}
 
 #grand-totals{display:none;background:var(--accent);color:#fff;border-radius:var(--r);padding:1.1rem;margin-top:.6rem}
 #grand-totals h3{font-size:.78rem;font-weight:700;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.65rem}
@@ -173,7 +175,6 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 .popup-item .pi-icon{font-size:1.15rem;width:1.4rem;text-align:center;flex-shrink:0}
 .popup-divider{border:none;border-top:1px solid var(--border);margin:0}
 
-/* ── MODAL ── */
 #modal-overlay,#arkiv-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;overflow-y:auto;padding:1rem}
 #modal-overlay.open,#arkiv-modal-overlay.open{display:flex;align-items:flex-start;justify-content:center}
 #modal,#arkiv-modal{background:var(--white);border-radius:var(--r);width:100%;max-width:480px;padding:1.4rem;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,.25)}
@@ -186,11 +187,10 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 #modal-msg,#arkiv-modal-msg{text-align:center;font-size:.88rem;margin-top:.5rem;min-height:1.1em;font-weight:600}
 
 #arkiv-modal{max-width:360px}
-#arkiv-modal h2{font-size:1rem;font-weight:700;color:#7a5020;margin-bottom:.75rem}
 #arkiv-modal p{font-size:.88rem;color:var(--muted);margin-bottom:.85rem;line-height:1.5}
 #arkiv-modal input{width:100%;min-height:var(--touch);padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-family:'proxima-nova','Nunito',sans-serif;font-size:16px;color:#111;font-weight:600;background:#faf8f5;-webkit-appearance:none;box-sizing:border-box}
 #arkiv-modal input:focus{outline:none;border-color:#9a7040}
-.arkiv-btn-lagre{width:100%;min-height:var(--touch);padding:.85rem;background:#9a7040;color:#fff;border:none;border-radius:10px;font-family:'proxima-nova','Nunito',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;margin-top:.5rem}
+.arkiv-btn-lagre{width:100%;min-height:var(--touch);padding:.85rem;background:#9a7040;color:#fff;border:none;border-radius:10px;font-family:'proxima-nova','Nunito',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;margin-top:.75rem}
 
 #loading{text-align:center;color:var(--muted);padding:1.5rem;font-size:.95rem;font-weight:600}
 #empty{text-align:center;color:var(--muted);padding:1.5rem;font-size:.95rem;display:none;font-weight:600}
@@ -227,7 +227,6 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
     <button id="logout-btn">Logg ut</button>
   </header>
 
-  <!-- SALGSFORM -->
   <div class="section">
     <div class="section-head">
       <div class="stitle">Nytt salg</div>
@@ -297,28 +296,24 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
     <div id="form-msg"></div>
   </div>
 
-  <!-- FILTER TABS -->
   <div class="filter-wrap">
     <div class="filter-tabs" id="filter-tabs"></div>
   </div>
 
-  <!-- ARKIV-HANDLINGSRAD -->
   <div class="arkiv-bar" id="arkiv-bar" style="display:none">
     <button class="arkiv-bar-btn" id="arkiver-btn">🗄 Arkiver disse salgene…</button>
   </div>
 
-  <!-- SØKEFELT -->
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
-    <input type="search" id="search-input" placeholder="Søk på navn, kunstner, tittel, telefon…">
+    <input type="search" id="search-input" placeholder="Søk i alle salg, inkl. arkiverte…">
     <button class="search-clear" id="search-clear">✕</button>
   </div>
   <div class="search-info" id="search-info" style="display:none"></div>
 
-  <!-- SALGSLISTE -->
   <div class="section">
     <div class="sales-top">
-      <div class="stitle" id="sales-title">Alle salg</div>
+      <div class="stitle" id="sales-title">Nylige salg</div>
       <button class="excel-btn" id="excel-btn" style="display:none" onclick="exportExcel()">📊 Excel</button>
     </div>
     <div id="loading">Laster inn salg…</div>
@@ -347,8 +342,9 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
       <h2>🗄 Arkiver salg</h2>
       <button id="arkiv-modal-close">×</button>
     </div>
-    <p id="arkiv-modal-tekst">Gi arkivet et navn. Alle salgene flyttes dit og skjules fra hovedvisningen.</p>
-    <input type="text" id="arkiv-navn-input" placeholder="F.eks. Pushwagner vår 2026">
+    <p id="arkiv-modal-tekst"></p>
+    <input type="text" id="arkiv-navn-input" placeholder="F.eks. Pushwagner vår 2026" list="arkiv-list">
+    <datalist id="arkiv-list"></datalist>
     <button class="arkiv-btn-lagre" id="arkiv-lagre-btn">Flytt til arkiv</button>
     <div id="arkiv-modal-msg"></div>
   </div>
@@ -426,8 +422,10 @@ var SURL='https://nyievdrggepyljysvggh.supabase.co';
 var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55aWV2ZHJnZ2VweWxqeXN2Z2doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTAwNTAsImV4cCI6MjA5MTk4NjA1MH0.JG9sU89I4gMBBarPXE21R9pgCQl-gXertMKk9m-zGd8';
 var CODE='SoliBrugFredrikstad';
 var sb=null,editId=null,mode='nytt';
-var alleSalg=[],aktivFilter='alle',sokeTekst='';
-var visArkiv=false; /* true = vi viser arkivfanen */
+var alleSalg=[],aktivFilter='alle',sokeTekst='',visArkiv=false;
+/* arkivModal kan bli åpnet for ett enkelt salg (enkeltId) eller alle i en kunstner (null) */
+var arkivModus=null; /* 'enkelt' | 'gruppe' */
+var arkivEnkeltId=null;
 
 function erUX(info){return(info||'').toUpperCase().trim()==='UX';}
 function normTittel(t){return(t||'').trim().toLowerCase().replace(/\s+/g,' ');}
@@ -447,10 +445,11 @@ function sorterGruppe(salg){
   return ux.concat(andre);
 }
 
+/* Søk i ALLE salg inkludert arkiverte */
 function sokFilter(s,q){
   if(!q)return true;
   var t=q.toLowerCase();
-  return[s.navn,s.kunstner,s.tittel,s.edisjon,s.telefon,s.epost,s.adresse,s.ramme_info,s.notat,s.selger,
+  return[s.navn,s.kunstner,s.tittel,s.edisjon,s.telefon,s.epost,s.adresse,s.ramme_info,s.notat,s.selger,s.arkiv,
          s.ordrenummer?'2026-'+String(s.ordrenummer).padStart(3,'0'):'']
     .some(function(v){return v&&String(v).toLowerCase().indexOf(t)>-1;});
 }
@@ -468,19 +467,11 @@ document.getElementById('login-btn').addEventListener('click',function(){
   document.getElementById('login-error').style.display='none';
   document.getElementById('login-status').textContent='Logger inn…';
   sessionStorage.setItem('sbauth','1');
-  loadSB(function(){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='block';
-    document.getElementById('login-status').textContent='';
-    init();
-  });
+  loadSB(function(){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';document.getElementById('login-status').textContent='';init();});
 });
 document.getElementById('code-input').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('login-btn').click();});
 document.getElementById('logout-btn').addEventListener('click',function(){sessionStorage.removeItem('sbauth');document.getElementById('app').style.display='none';document.getElementById('login-screen').style.display='flex';});
-if(sessionStorage.getItem('sbauth')==='1'){
-  document.getElementById('login-screen').style.display='none';
-  loadSB(function(){document.getElementById('app').style.display='block';init();});
-}
+if(sessionStorage.getItem('sbauth')==='1'){document.getElementById('login-screen').style.display='none';loadSB(function(){document.getElementById('app').style.display='block';init();});}
 
 function n(id){return parseFloat(document.getElementById(id).value)||0;}
 function kr(v){return(v||0).toLocaleString('nb-NO')+' kr';}
@@ -516,15 +507,16 @@ function oppdaterAutocomplete(){
     if(s.kunstner&&kunstnere.indexOf(s.kunstner)===-1)kunstnere.push(s.kunstner);
     if(s.tittel&&titler.indexOf(s.tittel)===-1)titler.push(s.tittel);
   });
-  /* Selgere fra alle salg (inkl. arkiverte) */
-  alleSalg.forEach(function(s){
-    if(s.selger&&selgere.indexOf(s.selger)===-1)selgere.push(s.selger);
-  });
+  alleSalg.forEach(function(s){if(s.selger&&selgere.indexOf(s.selger)===-1)selgere.push(s.selger);});
   kunstnere.sort();titler.sort();selgere.sort();
-
   ['kunstner-list','kunstner-list-m'].forEach(function(id){var dl=document.getElementById(id);if(!dl)return;dl.innerHTML='';kunstnere.forEach(function(k){var o=document.createElement('option');o.value=k;dl.appendChild(o);});});
   ['tittel-list','tittel-list-m'].forEach(function(id){var dl=document.getElementById(id);if(!dl)return;dl.innerHTML='';titler.forEach(function(t){var o=document.createElement('option');o.value=t;dl.appendChild(o);});});
   ['selger-list','selger-list-m'].forEach(function(id){var dl=document.getElementById(id);if(!dl)return;dl.innerHTML='';selgere.forEach(function(s){var o=document.createElement('option');o.value=s;dl.appendChild(o);});});
+  /* Arkivnavn-autocomplete */
+  var arkivNavn=[];
+  alleSalg.forEach(function(s){if(s.arkiv&&arkivNavn.indexOf(s.arkiv)===-1)arkivNavn.push(s.arkiv);});
+  arkivNavn.sort();
+  var dl=document.getElementById('arkiv-list');if(dl){dl.innerHTML='';arkivNavn.forEach(function(a){var o=document.createElement('option');o.value=a;dl.appendChild(o);});}
 
   ['f-kunstner','m-kunstner'].forEach(function(kid){
     var prefix=kid==='f-kunstner'?'f-':'m-';
@@ -534,26 +526,25 @@ function oppdaterAutocomplete(){
       var k=this.value.trim(),titlerK=[];
       aktive.forEach(function(s){if(s.kunstner===k&&s.tittel&&titlerK.indexOf(s.tittel)===-1)titlerK.push(s.tittel);});
       titlerK.sort();
-      var dl=document.getElementById(prefix==='f-'?'tittel-list':'tittel-list-m');dl.innerHTML='';
-      titlerK.forEach(function(t){var o=document.createElement('option');o.value=t;dl.appendChild(o);});
+      var dl2=document.getElementById(prefix==='f-'?'tittel-list':'tittel-list-m');dl2.innerHTML='';
+      titlerK.forEach(function(t){var o=document.createElement('option');o.value=t;dl2.appendChild(o);});
     });
   });
 }
 
-/* ── FILTER TABS ── */
 function byggFilterTabs(){
   var wrap=document.getElementById('filter-tabs');wrap.innerHTML='';
   var aktive=alleSalg.filter(function(s){return !s.arkiv;});
   var arkiverte=alleSalg.filter(function(s){return !!s.arkiv;});
 
-  /* Alle-tab */
-  var alle=document.createElement('button');
-  alle.className='ftab'+(aktivFilter==='alle'&&!visArkiv?' active':'');
-  alle.textContent='Alle ('+aktive.length+')';
-  alle.addEventListener('click',function(){aktivFilter='alle';visArkiv=false;sokeTekst='';document.getElementById('search-input').value='';oppdaterSokeUI();oppdaterArkivBar();renderSalg();byggFilterTabs();});
-  wrap.appendChild(alle);
+  /* Nylige salg */
+  var nylige=document.createElement('button');
+  nylige.className='ftab'+(aktivFilter==='alle'&&!visArkiv?' active':'');
+  nylige.textContent='Nylige salg ('+aktive.length+')';
+  nylige.addEventListener('click',function(){aktivFilter='alle';visArkiv=false;sokeTekst='';document.getElementById('search-input').value='';oppdaterSokeUI();oppdaterArkivBar();renderSalg();byggFilterTabs();});
+  wrap.appendChild(nylige);
 
-  /* Kunstner-tabs (kun aktive salg) */
+  /* Kunstner-tabs */
   var kunstnere=[];
   aktive.forEach(function(s){if(s.kunstner&&kunstnere.indexOf(s.kunstner)===-1)kunstnere.push(s.kunstner);});
   kunstnere.sort();
@@ -566,7 +557,7 @@ function byggFilterTabs(){
     wrap.appendChild(btn);
   });
 
-  /* Arkiv-tab (kun hvis det finnes arkiverte) */
+  /* Arkiv-tab */
   if(arkiverte.length>0){
     var arkivTab=document.createElement('button');
     arkivTab.className='ftab arkiv-tab'+(visArkiv?' active':'');
@@ -577,14 +568,10 @@ function byggFilterTabs(){
 }
 
 function oppdaterArkivBar(){
-  var bar=document.getElementById('arkiv-bar');
-  /* Vis arkiver-knapp kun når vi ser på en bestemt kunstner (ikke arkiv og ikke alle) */
-  bar.style.display=(!visArkiv&&aktivFilter!=='alle')?'flex':'none';
+  document.getElementById('arkiv-bar').style.display=(!visArkiv&&aktivFilter!=='alle')?'flex':'none';
 }
-
 function oppdaterSokeUI(){
-  var harSok=sokeTekst.length>0;
-  document.getElementById('search-clear').className='search-clear'+(harSok?' vis':'');
+  document.getElementById('search-clear').className='search-clear'+(sokeTekst.length>0?' vis':'');
 }
 
 async function loadSales(){
@@ -602,128 +589,117 @@ function renderSalg(){
   document.getElementById('empty').style.display='none';
   document.getElementById('grand-totals').style.display='none';
 
+  /* ── SØKEMODUS: søk i ALLE salg (aktive + arkiverte) ── */
+  if(sokeTekst){
+    document.getElementById('sales-title').textContent='Søkeresultat';
+    document.getElementById('excel-btn').style.display='none';
+    var treff=alleSalg.filter(function(s){return sokFilter(s,sokeTekst);});
+    var infoEl=document.getElementById('search-info');
+    infoEl.style.display='block';
+    infoEl.textContent='Fant '+treff.length+' treff på «'+sokeTekst+'» (inkl. arkiverte)';
+    if(!treff.length){document.getElementById('empty').style.display='block';document.getElementById('empty').textContent='Ingen treff på «'+sokeTekst+'»';return;}
+    treff.forEach(function(s){list.appendChild(makeCard(s,false));});
+    /* Totalsum for treff */
+    var gt=treff.reduce(function(a,s){return{pris:a.pris+(s.pris||0),bkh:a.bkh+(s.bkh||0),ramme:a.ramme+(s.ramme||0),frakt:a.frakt+(s.frakt||0),total:a.total+(s.total||0)-(s.bkh||0)};},{pris:0,bkh:0,ramme:0,frakt:0,total:0});
+    document.getElementById('gt-pris').textContent=kr(gt.pris);document.getElementById('gt-bkh').textContent=kr(gt.bkh);
+    document.getElementById('gt-ramme').textContent=kr(gt.ramme);document.getElementById('gt-frakt').textContent=kr(gt.frakt);
+    document.getElementById('gt-total').textContent=kr(gt.total);
+    document.getElementById('grand-totals').style.display='block';
+    return;
+  }
+
+  document.getElementById('search-info').style.display='none';
+
   /* ── ARKIVVISNING ── */
   if(visArkiv){
     document.getElementById('sales-title').textContent='Arkiv';
     document.getElementById('excel-btn').style.display='none';
     var arkiverte=alleSalg.filter(function(s){return!!s.arkiv;});
-    if(sokeTekst)arkiverte=arkiverte.filter(function(s){return sokFilter(s,sokeTekst);});
-
-    var infoEl=document.getElementById('search-info');
-    if(sokeTekst){infoEl.style.display='block';infoEl.textContent='Fant '+arkiverte.length+' treff på «'+sokeTekst+'»';}
-    else{infoEl.style.display='none';}
-
-    if(!arkiverte.length){document.getElementById('empty').style.display='block';document.getElementById('empty').textContent=sokeTekst?'Ingen treff':'Arkivet er tomt.';return;}
-
-    /* Grupper etter arkivnavn */
+    if(!arkiverte.length){document.getElementById('empty').style.display='block';document.getElementById('empty').textContent='Arkivet er tomt.';return;}
     var grupper={},gRek=[];
-    arkiverte.forEach(function(s){
-      if(!grupper[s.arkiv]){grupper[s.arkiv]=[];gRek.push(s.arkiv);}
-      grupper[s.arkiv].push(s);
-    });
-    /* Unike rekkefølge */
+    arkiverte.forEach(function(s){if(!grupper[s.arkiv]){grupper[s.arkiv]=[];gRek.push(s.arkiv);}grupper[s.arkiv].push(s);});
     var uniq=[];gRek.forEach(function(n){if(uniq.indexOf(n)===-1)uniq.push(n);});
-
     uniq.forEach(function(arkivNavn){
       var salg=grupper[arkivNavn];
-      var gt=salg.reduce(function(a,s){return{total:a.total+(s.total||0)-(s.bkh||0),antall:a.antall+1};},{total:0,antall:0});
-
+      var gt2=salg.reduce(function(a,s){return{total:a.total+(s.total||0)-(s.bkh||0),antall:a.antall+1};},{total:0,antall:0});
       var grp=document.createElement('div');grp.className='arkiv-gruppe';
-
       var hdr=document.createElement('div');hdr.className='arkiv-gruppe-header';
-      hdr.innerHTML='<div><div class="arkiv-gruppe-navn">🗄 '+arkivNavn+'</div><div class="arkiv-gruppe-meta">'+gt.antall+' salg · '+kr(gt.total)+' eks. BKH</div></div>'+
-        '<button class="hent-ut-btn" data-arkiv="'+arkivNavn+'">Hent ut</button>';
-      hdr.querySelector('.hent-ut-btn').addEventListener('click',function(e){
-        e.stopPropagation();
-        if(confirm('Hente ut alle salg fra «'+arkivNavn+'» tilbake til hovedvisningen?')){
-          hentUtArkiv(arkivNavn);
-        }
-      });
-
+      hdr.innerHTML='<div><div class="arkiv-gruppe-navn">🗄 '+arkivNavn+'</div><div class="arkiv-gruppe-meta">'+gt2.antall+' salg · '+kr(gt2.total)+' eks. BKH</div></div><button class="hent-ut-btn" data-arkiv="'+arkivNavn+'">Hent ut</button>';
+      hdr.querySelector('.hent-ut-btn').addEventListener('click',function(e){e.stopPropagation();if(confirm('Hente ut alle salg fra «'+arkivNavn+'» tilbake?'))hentUtArkiv(arkivNavn);});
       var salgDiv=document.createElement('div');salgDiv.className='arkiv-gruppe-salg skjult';
-      salg.forEach(function(s){salgDiv.appendChild(makeCard(s,false,true));});
+      salg.forEach(function(s){salgDiv.appendChild(makeCard(s,false));});
       grp.appendChild(hdr);grp.appendChild(salgDiv);
-
-      /* Klikk på header for å ekspandere */
-      hdr.style.cursor='pointer';
-      hdr.addEventListener('click',function(e){
-        if(e.target.classList.contains('hent-ut-btn'))return;
-        salgDiv.classList.toggle('skjult');
-      });
-
+      hdr.addEventListener('click',function(e){if(e.target.classList.contains('hent-ut-btn'))return;salgDiv.classList.toggle('skjult');});
       list.appendChild(grp);
     });
     return;
   }
 
-  /* ── NORMAL VISNING (kun ikke-arkiverte) ── */
+  /* ── NORMAL VISNING ── */
   var aktive=alleSalg.filter(function(s){return !s.arkiv;});
   var erAlle=aktivFilter==='alle';
-  var basData=erAlle?aktive:aktive.filter(function(s){return s.kunstner===aktivFilter;});
-  var raaData=sokeTekst?basData.filter(function(s){return sokFilter(s,sokeTekst);}):basData;
+  var raaData=erAlle?aktive:aktive.filter(function(s){return s.kunstner===aktivFilter;});
 
-  var infoEl2=document.getElementById('search-info');
-  if(sokeTekst){infoEl2.style.display='block';infoEl2.textContent='Fant '+raaData.length+' treff på «'+sokeTekst+'»';}
-  else{infoEl2.style.display='none';}
-
-  document.getElementById('sales-title').textContent=erAlle?'Alle salg':aktivFilter;
+  document.getElementById('sales-title').textContent=erAlle?'Nylige salg':aktivFilter;
   document.getElementById('excel-btn').style.display=raaData.length?'inline-flex':'none';
 
-  if(!raaData.length){
-    document.getElementById('empty').style.display='block';
-    document.getElementById('empty').textContent=sokeTekst?'Ingen treff på «'+sokeTekst+'»':'Ingen salg registrert ennå.';
-    return;
-  }
+  if(!raaData.length){document.getElementById('empty').style.display='block';document.getElementById('empty').textContent='Ingen salg ennå.';return;}
 
-  if(erAlle||sokeTekst){
-    raaData.forEach(function(s){list.appendChild(makeCard(s,false,false));});
+  if(erAlle){
+    raaData.forEach(function(s){list.appendChild(makeCard(s,false));});
   } else {
     var data=sorterKunstnerData(raaData);
-    var grupper={},displayTittel={},rekkefolge=[];
+    var grupper2={},displayTittel={},rekkefolge=[];
     data.forEach(function(s){
       var norm=normTittel(s.tittel)||'(uten tittel)';
-      if(!grupper[norm]){grupper[norm]=[];rekkefolge.push(norm);displayTittel[norm]=s.tittel||'(uten tittel)';}
-      grupper[norm].push(s);
+      if(!grupper2[norm]){grupper2[norm]=[];rekkefolge.push(norm);displayTittel[norm]=s.tittel||'(uten tittel)';}
+      grupper2[norm].push(s);
     });
     rekkefolge.forEach(function(norm){
-      var salg=sorterGruppe(grupper[norm]);
-      if(salg.length===1){list.appendChild(makeCard(salg[0],false,false));}
+      var salg=sorterGruppe(grupper2[norm]);
+      if(salg.length===1){list.appendChild(makeCard(salg[0],false));}
       else{
         var gruppe=document.createElement('div');gruppe.className='verk-gruppe';
         var header=document.createElement('div');header.className='verk-gruppe-header';
         header.innerHTML='<div class="verk-gruppe-linje"></div><div class="verk-gruppe-tittel">'+displayTittel[norm]+'</div><span class="verk-gruppe-antall">'+salg.length+'</span><div class="verk-gruppe-linje"></div>';
         gruppe.appendChild(header);
         var wrap=document.createElement('div');wrap.className='verk-gruppe-salg';
-        salg.forEach(function(s){wrap.appendChild(makeCard(s,true,false));});
+        salg.forEach(function(s){wrap.appendChild(makeCard(s,true));});
         gruppe.appendChild(wrap);list.appendChild(gruppe);
       }
     });
   }
 
-  var gt=raaData.reduce(function(a,s){return{pris:a.pris+(s.pris||0),bkh:a.bkh+(s.bkh||0),ramme:a.ramme+(s.ramme||0),frakt:a.frakt+(s.frakt||0),total:a.total+(s.total||0)-(s.bkh||0)};},{pris:0,bkh:0,ramme:0,frakt:0,total:0});
-  document.getElementById('gt-pris').textContent=kr(gt.pris);
-  document.getElementById('gt-bkh').textContent=kr(gt.bkh);
-  document.getElementById('gt-ramme').textContent=kr(gt.ramme);
-  document.getElementById('gt-frakt').textContent=kr(gt.frakt);
-  document.getElementById('gt-total').textContent=kr(gt.total);
+  var gt3=raaData.reduce(function(a,s){return{pris:a.pris+(s.pris||0),bkh:a.bkh+(s.bkh||0),ramme:a.ramme+(s.ramme||0),frakt:a.frakt+(s.frakt||0),total:a.total+(s.total||0)-(s.bkh||0)};},{pris:0,bkh:0,ramme:0,frakt:0,total:0});
+  document.getElementById('gt-pris').textContent=kr(gt3.pris);document.getElementById('gt-bkh').textContent=kr(gt3.bkh);
+  document.getElementById('gt-ramme').textContent=kr(gt3.ramme);document.getElementById('gt-frakt').textContent=kr(gt3.frakt);
+  document.getElementById('gt-total').textContent=kr(gt3.total);
   document.getElementById('grand-totals').style.display='block';
 }
 
-function makeCard(s,erGruppert,erArkivkort){
-  var d=document.createElement('div');d.className='sale-card';
+function makeCard(s,erGruppert){
+  var d=document.createElement('div');
+  d.className='sale-card'+(s.arkiv?' er-arkivert':'');
   var k='';
   if(s.telefon)k+='<button class="contact-link" data-tlf="'+s.telefon+'">📞 '+s.telefon+'</button>';
   if(s.telefon&&s.epost)k+=' &nbsp;·&nbsp; ';
   if(s.epost)k+='<button class="contact-link" data-epost="'+s.epost+'">✉️ '+s.epost+'</button>';
   var edisjonChip=s.edisjon?'<span class="sc-edisjon">'+s.edisjon+'</span>':'';
+  /* I søkeresultat: vis arkivnavn-chip på arkiverte kort */
+  var arkivChip=s.arkiv?'<span class="sc-arkiv-chip">🗄 '+s.arkiv+'</span>':'';
   var artHtml=erGruppert
     ?'<div class="sc-art-title-grouped">'+(s.kunstner||'—')+(s.tittel?' – <em style="font-weight:500">'+s.tittel+'</em>':'')+edisjonChip+'</div>'
     :'<div class="sc-art-title">'+(s.kunstner||'—')+(s.tittel?' – <em style="font-weight:500">'+s.tittel+'</em>':'')+edisjonChip+'</div>';
   var notatHtml=s.notat?'<div class="sc-notat"><div class="sc-notat-lbl">ℹ️ Info om salget</div>'+s.notat+'</div>':'';
   var selgerHtml=s.selger?'<div class="sc-selger">Selger: '+s.selger+'</div>':'';
 
+  /* Arkiver-knapp: vises kun på ikke-arkiverte kort */
+  var arkiverKnapp=!s.arkiv
+    ?'<button class="sc-arkiver-btn" data-action="arkiver">🗄</button>'
+    :'';
+
   d.innerHTML=
-    '<div class="sc-top"><span class="sc-nr">'+onr(s.ordrenummer)+'</span><span class="sc-time">'+fmt(s.created_at)+'</span></div>'+
+    '<div class="sc-top"><span class="sc-nr">'+onr(s.ordrenummer)+'</span>'+arkivChip+'<span class="sc-time">'+fmt(s.created_at)+'</span></div>'+
     artHtml+selgerHtml+
     '<div class="sc-amounts">'+amt('Pris',s.pris,null)+amt('BKH 5%',s.bkh,null)+amt('Ramme',s.ramme,s.ramme_info)+amt('Frakt',s.frakt,null)+'</div>'+
     '<div class="sc-foot">'+(s.levering?'<span class="badge-lev">🚚 Levering</span>':'<span class="badge-no">Hentes</span>')+'<span class="sc-total">'+kr(s.total)+'</span></div>'+
@@ -734,7 +710,11 @@ function makeCard(s,erGruppert,erArkivkort){
     '</div>'+
     '<div class="sc-customer"><div class="sc-customer-name">'+(s.navn||'—')+'</div>'+
     '<div class="sc-customer-detail">'+(k||'')+(k&&s.adresse?'<br>':'')+(s.adresse||'')+'</div></div>'+
-    '<div class="sc-bottom-row"><button class="sc-copy-btn" data-action="copy">📋 Kopier kvittering</button><button class="sc-edit-btn" data-action="edit">✏️ Rediger</button></div>';
+    '<div class="sc-bottom-row">'+
+      '<button class="sc-copy-btn" data-action="copy">📋 Kopier kvittering</button>'+
+      arkiverKnapp+
+      '<button class="sc-edit-btn" data-action="edit">✏️ Rediger</button>'+
+    '</div>';
 
   d.querySelector('[data-action=hentet]').addEventListener('click',function(e){e.stopPropagation();toggle(s,'hentet',this);});
   d.querySelector('[data-action=faktura]').addEventListener('click',function(e){e.stopPropagation();toggle(s,'faktura_sendt',this);});
@@ -743,6 +723,8 @@ function makeCard(s,erGruppert,erArkivkort){
     e.stopPropagation();var btn=this;
     navigator.clipboard.writeText(lagKvittering(s)).then(function(){btn.textContent='✅ Kopiert!';btn.classList.add('copied');setTimeout(function(){btn.innerHTML='📋 Kopier kvittering';btn.classList.remove('copied');},2500);});
   });
+  var arkBtn=d.querySelector('[data-action=arkiver]');
+  if(arkBtn)arkBtn.addEventListener('click',function(e){e.stopPropagation();åpneArkivModalEnkelt(s);});
   var tlfBtn=d.querySelector('[data-tlf]');if(tlfBtn)tlfBtn.addEventListener('click',function(e){e.stopPropagation();phonePopup(e,this.dataset.tlf);});
   var epostBtn=d.querySelector('[data-epost]');if(epostBtn)epostBtn.addEventListener('click',function(e){e.stopPropagation();emailPopup(e,this.dataset.epost);});
   return d;
@@ -756,12 +738,35 @@ async function toggle(s,field,btn){
   if(!r.error){s[field]=nv;if(field==='hentet'){btn.className='status-btn'+(nv?' ok-green':'');btn.innerHTML=(nv?'✅':'☐')+' Hentet';}else{btn.className='status-btn'+(nv?' ok-blue':'');btn.innerHTML=(nv?'✅':'☐')+' Faktura sendt';}}
 }
 
-/* ── ARKIVER ── */
-function åpneArkivModal(){
-  var aktive=alleSalg.filter(function(s){return !s.arkiv&&s.kunstner===aktivFilter;});
-  document.getElementById('arkiv-modal-tekst').textContent='Arkiverer '+aktive.length+' salg fra «'+aktivFilter+'». Gi arkivet et navn:';
-  document.getElementById('arkiv-navn-input').value=aktivFilter+' '+new Date().getFullYear();
+/* ── ARKIV MODAL ── */
+function oppdaterArkivModalUI(){
+  if(arkivModus==='enkelt'){
+    var s=alleSalg.find(function(x){return x.id===arkivEnkeltId;});
+    document.getElementById('arkiv-modal-tekst').textContent='Arkiver salg '+onr(s.ordrenummer)+' – '+(s.kunstner||'')+(s.tittel?' / '+s.tittel:'')+'. Velg eller skriv mappenavn:';
+    /* Foreslå siste arkivnavn for denne kunstneren */
+    var forslag='';
+    if(s.kunstner){
+      var ark=alleSalg.filter(function(x){return x.arkiv&&x.kunstner===s.kunstner;});
+      if(ark.length)forslag=ark[0].arkiv;
+    }
+    document.getElementById('arkiv-navn-input').value=forslag||((s.kunstner||'')+' '+new Date().getFullYear());
+  } else {
+    var aktive=alleSalg.filter(function(x){return !x.arkiv&&x.kunstner===aktivFilter;});
+    document.getElementById('arkiv-modal-tekst').textContent='Arkiverer '+aktive.length+' salg fra «'+aktivFilter+'». Gi arkivet et navn:';
+    document.getElementById('arkiv-navn-input').value=aktivFilter+' '+new Date().getFullYear();
+  }
   document.getElementById('arkiv-modal-msg').textContent='';
+}
+
+function åpneArkivModalEnkelt(s){
+  arkivModus='enkelt';arkivEnkeltId=s.id;
+  oppdaterArkivModalUI();
+  document.getElementById('arkiv-modal-overlay').classList.add('open');
+  setTimeout(function(){document.getElementById('arkiv-navn-input').focus();document.getElementById('arkiv-navn-input').select();},100);
+}
+function åpneArkivModalGruppe(){
+  arkivModus='gruppe';arkivEnkeltId=null;
+  oppdaterArkivModalUI();
   document.getElementById('arkiv-modal-overlay').classList.add('open');
   setTimeout(function(){document.getElementById('arkiv-navn-input').focus();document.getElementById('arkiv-navn-input').select();},100);
 }
@@ -770,16 +775,19 @@ async function utforArkivering(){
   var navn=document.getElementById('arkiv-navn-input').value.trim();
   var msg=document.getElementById('arkiv-modal-msg');
   if(!navn){msg.style.color='var(--danger)';msg.textContent='Gi arkivet et navn.';return;}
-  var ids=alleSalg.filter(function(s){return !s.arkiv&&s.kunstner===aktivFilter;}).map(function(s){return s.id;});
+  var ids;
+  if(arkivModus==='enkelt'){
+    ids=[arkivEnkeltId];
+  } else {
+    ids=alleSalg.filter(function(s){return !s.arkiv&&s.kunstner===aktivFilter;}).map(function(s){return s.id;});
+  }
   if(!ids.length){msg.style.color='var(--danger)';msg.textContent='Ingen salg å arkivere.';return;}
-  document.getElementById('arkiv-lagre-btn').disabled=true;
-  document.getElementById('arkiv-lagre-btn').textContent='Arkiverer…';
+  document.getElementById('arkiv-lagre-btn').disabled=true;document.getElementById('arkiv-lagre-btn').textContent='Arkiverer…';
   var r=await sb.from('salg').update({arkiv:navn}).in('id',ids);
-  document.getElementById('arkiv-lagre-btn').disabled=false;
-  document.getElementById('arkiv-lagre-btn').textContent='Flytt til arkiv';
+  document.getElementById('arkiv-lagre-btn').disabled=false;document.getElementById('arkiv-lagre-btn').textContent='Flytt til arkiv';
   if(r.error){msg.style.color='var(--danger)';msg.textContent='Feil: '+r.error.message;return;}
   document.getElementById('arkiv-modal-overlay').classList.remove('open');
-  aktivFilter='alle';visArkiv=false;
+  if(arkivModus==='gruppe'){aktivFilter='alle';visArkiv=false;}
   loadSales();
 }
 
@@ -795,9 +803,7 @@ function showPopup(e,items,title){
   document.getElementById('popup-title').textContent=title||'';container.innerHTML='';
   items.forEach(function(item,i){
     if(i>0){var hr=document.createElement('hr');hr.className='popup-divider';container.appendChild(hr);}
-    var el=document.createElement('a');el.className='popup-item';
-    el.innerHTML='<span class="pi-icon">'+item.icon+'</span>'+item.label;
-    el.href=item.href;container.appendChild(el);
+    var el=document.createElement('a');el.className='popup-item';el.innerHTML='<span class="pi-icon">'+item.icon+'</span>'+item.label;el.href=item.href;container.appendChild(el);
   });
   popup.classList.add('open');
   var rect=e.target.getBoundingClientRect();var pw=220;
@@ -823,10 +829,9 @@ function lagKvittering(s){
 function exportExcel(){
   var aktive=alleSalg.filter(function(s){return !s.arkiv;});
   var erAlle=aktivFilter==='alle';
-  var basData=erAlle?aktive:aktive.filter(function(s){return s.kunstner===aktivFilter;});
-  var data=sokeTekst?basData.filter(function(s){return sokFilter(s,sokeTekst);}):basData;
+  var data=erAlle?aktive:aktive.filter(function(s){return s.kunstner===aktivFilter;});
   if(!data.length)return;
-  var filnavn=(erAlle?'Alle_salg':aktivFilter.replace(/\s/g,'_'))+(sokeTekst?'_søk':'')+'.csv';
+  var filnavn=(erAlle?'Nylige_salg':aktivFilter.replace(/\s/g,'_'))+'.csv';
   var rows=[['Ordrenr','Dato','Navn','Telefon','E-post','Adresse','Levering','Kunstner','Tittel','Edisjon','Pris','BKH','Ramme','Rammeinfo','Frakt','Total','Hentet','Faktura sendt','Selger','Info om salget']];
   data.forEach(function(s){rows.push([onr(s.ordrenummer),fmt(s.created_at),s.navn||'',s.telefon||'',s.epost||'',s.adresse||'',s.levering?'Ja':'Nei',s.kunstner||'',s.tittel||'',s.edisjon||'',s.pris||0,s.bkh||0,s.ramme||0,s.ramme_info||'',s.frakt||0,s.total||0,s.hentet?'Ja':'Nei',s.faktura_sendt?'Ja':'Nei',s.selger||'',s.notat||'']);});
   var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"';}).join(';');}).join('\r\n');
@@ -847,18 +852,13 @@ function init(){
   document.getElementById('btn-cancel').addEventListener('click',closeModal);
   document.getElementById('modal-close').addEventListener('click',closeModal);
   document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
-
-  /* Arkiv */
-  document.getElementById('arkiver-btn').addEventListener('click',åpneArkivModal);
+  document.getElementById('arkiver-btn').addEventListener('click',åpneArkivModalGruppe);
   document.getElementById('arkiv-modal-close').addEventListener('click',function(){document.getElementById('arkiv-modal-overlay').classList.remove('open');});
   document.getElementById('arkiv-modal-overlay').addEventListener('click',function(e){if(e.target===this)document.getElementById('arkiv-modal-overlay').classList.remove('open');});
   document.getElementById('arkiv-lagre-btn').addEventListener('click',utforArkivering);
   document.getElementById('arkiv-navn-input').addEventListener('keydown',function(e){if(e.key==='Enter')utforArkivering();});
-
-  /* Søk */
   document.getElementById('search-input').addEventListener('input',function(){sokeTekst=this.value.trim();oppdaterSokeUI();renderSalg();});
   document.getElementById('search-clear').addEventListener('click',function(){sokeTekst='';document.getElementById('search-input').value='';oppdaterSokeUI();renderSalg();document.getElementById('search-input').focus();});
-
   loadSales();
 }
 
@@ -874,8 +874,7 @@ async function submitSale(){
   if(r.error){msg.style.color='var(--danger)';msg.textContent='Feil: '+r.error.message;return;}
   msg.style.color='var(--green)';msg.textContent='✓ Salg registrert!';
   ['navn','telefon','epost','adresse','kunstner','tittel','edisjon','pris','bkh','ramme','frakt','total','selger'].forEach(function(k){document.getElementById('f-'+k).value='';});
-  document.getElementById('f-ramme-info').value='';
-  document.getElementById('f-notat').value='';
+  document.getElementById('f-ramme-info').value='';document.getElementById('f-notat').value='';
   document.getElementById('f-ux-advarsel').className='ux-advarsel';
   document.getElementById('f-levering').checked=false;
   setMode('nytt');setTimeout(function(){msg.textContent='';},4000);loadSales();
