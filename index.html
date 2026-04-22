@@ -1197,9 +1197,14 @@ var NTFY_KANAL='soli-brug-salg';
 function sendVarsel(tittel,melding){
   fetch('https://ntfy.sh/'+NTFY_KANAL,{
     method:'POST',
-    headers:{'Title':tittel,'Priority':'default','Content-Type':'text/plain; charset=utf-8'},
-    body:melding
-  }).catch(function(){/* stille feil – varsel er ikke kritisk */});
+    headers:{
+      'Title': encodeURIComponent(tittel),
+      'Priority': 'default',
+      'Tags': 'bell',
+      'Content-Type': 'text/plain; charset=utf-8'
+    },
+    body: tittel+'\n'+melding
+  }).catch(function(){});
 }
 
 function init(){
