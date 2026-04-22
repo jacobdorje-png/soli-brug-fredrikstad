@@ -40,6 +40,33 @@ textarea.notat-inp:focus{outline:none;border-color:var(--accent);background:#fff
 header{background:var(--accent);color:#fff;padding:.9rem 1.1rem;position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;gap:.5rem;box-shadow:0 2px 12px rgba(0,0,0,.18);transition:background .35s}
 body.butikk-soli header{background:#3a7a52}
 body.butikk-fredrikstad header{background:#8B1a2e}
+/* ── SKJEMA FARGETONER ── */
+/* Soli – grønn */
+body.butikk-soli .section{border-color:#c0daca;transition:border-color .35s}
+body.butikk-soli input[type=text],body.butikk-soli input[type=email],body.butikk-soli input[type=tel],body.butikk-soli input[type=number],body.butikk-soli input[type=datetime-local],body.butikk-soli input[type=search],body.butikk-soli textarea.notat-inp,body.butikk-soli .ramme-info-inp{background:#f3f9f5;border-color:#c8ddd2}
+body.butikk-soli input:focus,body.butikk-soli .ramme-info-inp:focus,body.butikk-soli textarea.notat-inp:focus{border-color:#3a7a52;box-shadow:0 0 0 3px rgba(58,122,82,.12)}
+body.butikk-soli .stitle{color:#3a7a52}
+body.butikk-soli .section-head{border-bottom-color:#c0daca}
+body.butikk-soli .fdiv{border-color:#bcd8c8}
+body.butikk-soli .btn-primary{background:#3a7a52}
+body.butikk-soli .btn-primary:disabled{background:var(--muted)}
+body.butikk-soli .mode-btn.active{background:#3a7a52}
+body.butikk-soli .foto-upload-wrap{border-color:#c0daca;background:#f3f9f5}
+body.butikk-soli .checkbox-row input[type=checkbox]{accent-color:#3a7a52}
+body.butikk-soli .total-inp{background:#3a7a52!important;border-color:#3a7a52!important}
+/* Fredrikstad – burgunder */
+body.butikk-fredrikstad .section{border-color:#d4b8be;transition:border-color .35s}
+body.butikk-fredrikstad input[type=text],body.butikk-fredrikstad input[type=email],body.butikk-fredrikstad input[type=tel],body.butikk-fredrikstad input[type=number],body.butikk-fredrikstad input[type=datetime-local],body.butikk-fredrikstad input[type=search],body.butikk-fredrikstad textarea.notat-inp,body.butikk-fredrikstad .ramme-info-inp{background:#faf3f4;border-color:#d4b8be}
+body.butikk-fredrikstad input:focus,body.butikk-fredrikstad .ramme-info-inp:focus,body.butikk-fredrikstad textarea.notat-inp:focus{border-color:#8B1a2e;box-shadow:0 0 0 3px rgba(139,26,46,.12)}
+body.butikk-fredrikstad .stitle{color:#8B1a2e}
+body.butikk-fredrikstad .section-head{border-bottom-color:#d4b8be}
+body.butikk-fredrikstad .fdiv{border-color:#d4b8be}
+body.butikk-fredrikstad .btn-primary{background:#8B1a2e}
+body.butikk-fredrikstad .btn-primary:disabled{background:var(--muted)}
+body.butikk-fredrikstad .mode-btn.active{background:#8B1a2e}
+body.butikk-fredrikstad .foto-upload-wrap{border-color:#d4b8be;background:#faf3f4}
+body.butikk-fredrikstad .checkbox-row input[type=checkbox]{accent-color:#8B1a2e}
+body.butikk-fredrikstad .total-inp{background:#8B1a2e!important;border-color:#8B1a2e!important}
 header .hname{font-size:1.05rem;font-weight:700;line-height:1.2}
 header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 #logout-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:.5rem .85rem;border-radius:8px;font-size:.82rem;font-family:'proxima-nova','Nunito',sans-serif;font-weight:700;cursor:pointer;min-height:var(--touch);display:flex;align-items:center}
