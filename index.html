@@ -10,7 +10,9 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
-body{background:#f0ebe3;color:#111;font-family:'proxima-nova','Nunito',sans-serif;font-size:16px;min-height:100dvh;padding-bottom:5rem;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{background:#f0ebe3;color:#111;font-family:'proxima-nova','Nunito',sans-serif;font-size:16px;min-height:100dvh;padding-bottom:5rem;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .35s}
+body.butikk-soli{background:#eaf2ee}
+body.butikk-fredrikstad{background:#f0ebe3}
 :root{--bg:#f0ebe3;--white:#fff;--border:#d5c8b8;--accent:#7a5c3a;--muted:#555;--danger:#c0392b;--green:#1e8a3e;--blue:#1a5fa8;--orange:#c06010;--r:12px;--touch:48px;--arkiv:#9a7040}
 
 /* LOGIN */
@@ -35,7 +37,9 @@ textarea.notat-inp:focus{outline:none;border-color:var(--accent);background:#fff
 
 /* APP */
 #app{display:none}
-header{background:var(--accent);color:#fff;padding:.9rem 1.1rem;position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;gap:.5rem;box-shadow:0 2px 12px rgba(0,0,0,.18)}
+header{background:var(--accent);color:#fff;padding:.9rem 1.1rem;position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;gap:.5rem;box-shadow:0 2px 12px rgba(0,0,0,.18);transition:background .35s}
+body.butikk-soli header{background:#3a7a52}
+body.butikk-fredrikstad header{background:#7a5c3a}
 header .hname{font-size:1.05rem;font-weight:700;line-height:1.2}
 header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 #logout-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:.5rem .85rem;border-radius:8px;font-size:.82rem;font-family:'proxima-nova','Nunito',sans-serif;font-weight:700;cursor:pointer;min-height:var(--touch);display:flex;align-items:center}
@@ -187,7 +191,9 @@ header .hsub{font-size:.68rem;opacity:.75;font-weight:400}
 .sc-edit-btn{background:none;border:none;font-size:.76rem;color:#aaa;font-weight:600;cursor:pointer;font-family:'proxima-nova','Nunito',sans-serif;text-decoration:underline;padding:.5rem .2rem;min-height:42px;display:flex;align-items:center;white-space:nowrap}
 
 /* GRAND TOTALS */
-#grand-totals{display:none;background:var(--accent);color:#fff;border-radius:var(--r);padding:1.1rem;margin-top:.6rem}
+#grand-totals{display:none;background:var(--accent);color:#fff;border-radius:var(--r);padding:1.1rem;margin-top:.6rem;transition:background .35s}
+body.butikk-soli #grand-totals{background:#3a7a52}
+body.butikk-fredrikstad #grand-totals{background:#7a5c3a}
 #grand-totals h3{font-size:.78rem;font-weight:700;opacity:.8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.65rem}
 .gt-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin-bottom:.65rem}
 .gt-item{text-align:center}
@@ -654,6 +660,10 @@ function setMainTab(tab){
   document.getElementById('page-innramming').className='page'+(tab==='innramming'?' active':'');
   if(tab==='soli'||tab==='fredrikstad'){
     aktivButikk=tab;
+    /* Bakgrunnsfarge og header-farge */
+    document.body.className='butikk-'+tab;
+    var metaColor=document.querySelector('meta[name=theme-color]');
+    if(metaColor)metaColor.content=tab==='soli'?'#3a7a52':'#7a5c3a';
     aktivFilter='alle';visArkiv=false;sokeTekst='';
     document.getElementById('search-input').value='';
     oppdaterSokeUI();oppdaterArkivBar();
@@ -1139,6 +1149,8 @@ async function saveIr(){
 
 /* ══════════════ INIT ══════════════ */
 function init(){
+  /* Sett startfarge (Soli er aktiv ved oppstart) */
+  document.body.className='butikk-soli';
   /* Foto oppsett */
   setupFotoWrap('f-foto-wrap','f-foto-preview','f-foto-fjern','f-foto-laster',function(url){fFotoUrl=url;});
   setupFotoWrap('m-foto-wrap','m-foto-preview','m-foto-fjern','m-foto-laster',function(url){mFotoUrl=url;});
