@@ -375,6 +375,9 @@ datalist{display:none!important}
   </div>
 
   <!-- ══════════════════════ SALG-SIDE ══════════════════════ -->
+  <div class="filter-wrap"><div class="filter-tabs" id="filter-tabs"></div></div>
+  <div class="arkiv-bar" id="arkiv-bar" style="display:none"><button class="arkiv-bar-btn" id="arkiver-btn">🗄 Arkiver disse salgene…</button></div>
+
   <div class="page active" id="page-salg">
 
     <!-- SKJEMA -->
@@ -457,8 +460,6 @@ datalist{display:none!important}
       <div id="form-msg"></div>
     </div>
 
-    <div class="filter-wrap"><div class="filter-tabs" id="filter-tabs"></div></div>
-    <div class="arkiv-bar" id="arkiv-bar" style="display:none"><button class="arkiv-bar-btn" id="arkiver-btn">🗄 Arkiver disse salgene…</button></div>
     <div class="search-wrap"><span class="search-icon">🔍</span><input type="search" id="search-input" placeholder="Søk i alle salg, inkl. arkiverte…"><button class="search-clear" id="search-clear">✕</button></div>
     <div class="search-info" id="search-info" style="display:none"></div>
 
@@ -801,6 +802,7 @@ function setMainTab(tab){
     document.body.className='butikk-innramming';
     var metaColor=document.querySelector('meta[name=theme-color]');
     if(metaColor)metaColor.content='#3a5a7a';
+    byggFilterTabs();
     if(alleIr.length===0)loadIr();
   }
 }
@@ -868,19 +870,7 @@ function byggFilterTabs(){
   nylige.addEventListener('click',function(){aktivFilter='alle';visArkiv=false;visFaktura=false;sokeTekst='';document.getElementById('search-input').value='';oppdaterSokeUI();oppdaterArkivBar();renderSalg();byggFilterTabs();});
   wrap.appendChild(nylige);
 
-  var kunstnere=[];
-  aktive.forEach(function(s){if(s.kunstner&&kunstnere.indexOf(s.kunstner)===-1)kunstnere.push(s.kunstner);});
-  kunstnere.sort();
-  kunstnere.forEach(function(k){
-    var antall=aktive.filter(function(s){return s.kunstner===k;}).length;
-    var btn=document.createElement('button');
-    btn.className='ftab'+(aktivFilter===k&&!visArkiv&&!visFaktura?' active':'');
-    btn.textContent=k+' ('+antall+')';
-    btn.addEventListener('click',function(){aktivFilter=k;visArkiv=false;visFaktura=false;sokeTekst='';document.getElementById('search-input').value='';oppdaterSokeUI();oppdaterArkivBar();renderSalg();byggFilterTabs();});
-    wrap.appendChild(btn);
-  });
-
-  /* Faktura-tab – alltid synlig */
+  /* Faktura-tab – alltid synlig, rett ved siden av Nylige salg */
   var ft=document.createElement('button');
   ft.className='ftab'+(visFaktura?' active':'');
   ft.style.borderColor='#e07020';ft.style.color=visFaktura?'#fff':'#e07020';
@@ -893,6 +883,18 @@ function byggFilterTabs(){
     renderSalg();byggFilterTabs();
   });
   wrap.appendChild(ft);
+
+  var kunstnere=[];
+  aktive.forEach(function(s){if(s.kunstner&&kunstnere.indexOf(s.kunstner)===-1)kunstnere.push(s.kunstner);});
+  kunstnere.sort();
+  kunstnere.forEach(function(k){
+    var antall=aktive.filter(function(s){return s.kunstner===k;}).length;
+    var btn=document.createElement('button');
+    btn.className='ftab'+(aktivFilter===k&&!visArkiv&&!visFaktura?' active':'');
+    btn.textContent=k+' ('+antall+')';
+    btn.addEventListener('click',function(){aktivFilter=k;visArkiv=false;visFaktura=false;sokeTekst='';document.getElementById('search-input').value='';oppdaterSokeUI();oppdaterArkivBar();renderSalg();byggFilterTabs();});
+    wrap.appendChild(btn);
+  });
 
   if(arkiverte.length>0){
     var at=document.createElement('button');
