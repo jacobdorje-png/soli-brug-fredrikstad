@@ -661,19 +661,47 @@ function toLocalInput(iso){var d=new Date(iso);d.setMinutes(d.getMinutes()-d.get
 function nv(id){return parseFloat(document.getElementById(id).value)||0;}
 function calcT(p){var t=nv(p+'pris')+nv(p+'bkh')+nv(p+'ramme')+nv(p+'frakt');document.getElementById(p+'total').value=t>0?t:'';}
 
+/* Typeorden: UX øverst, deretter Grafikk, deretter Original/resten */
+function typeRang(s){
+  if(erUX(s.ramme_info))return 0;
+  if((s.type||'').toLowerCase()==='grafikk')return 1;
+  return 2; /* Original og ukjent */
+}
 function sorterKD(data){
-  var ux=data.filter(function(s){return erUX(s.ramme_info);});
-  var andre=data.filter(function(s){return!erUX(s.ramme_info);});
-  ux.sort(function(a,b){return(b.ordrenummer||0)-(a.ordrenummer||0);});
-  andre.sort(function(a,b){return(b.ordrenummer||0)-(a.ordrenummer||0);});
-  return ux.concat(andre);
+  /* Grupper etter normalisert tittel, sorter innad */
+  var grupper={},rek=[];
+  data.forEach(function(s){
+    var norm=normTittel(s.tittel)||'(uten tittel)';
+    if(!grupper[norm]){grupper[norm]=[];rek.push(norm);}
+    grupper[norm].push(s);
+  });
+  /* Sorter innad i hver gruppe: UX øverst, Grafikk midten, Original/resten nederst. Innen samme rang: nyeste SIST (asc) */
+  rek.forEach(function(norm){
+    grupper[norm].sort(function(a,b){
+      var ra=typeRang(a),rb=typeRang(b);
+      if(ra!==rb)return ra-rb;
+      return(a.ordrenummer||0)-(b.ordrenummer||0); /* nyeste sist */
+    });
+  });
+  /* Sorter tittelgrupper: grupper med UX øverst, deretter Grafikk, deretter Original */
+  rek.sort(function(a,b){
+    var ra=Math.min.apply(null,grupper[a].map(typeRang));
+    var rb=Math.min.apply(null,grupper[b].map(typeRang));
+    if(ra!==rb)return ra-rb;
+    return a.localeCompare(b,'nb');
+  });
+  /* Flat liste i riktig rekkefølge */
+  var result=[];
+  rek.forEach(function(norm){grupper[norm].forEach(function(s){result.push(s);});});
+  return result;
 }
 function sorterG(salg){
-  var ux=salg.filter(function(s){return erUX(s.ramme_info);});
-  var andre=salg.filter(function(s){return!erUX(s.ramme_info);});
-  ux.sort(function(a,b){return(b.ordrenummer||0)-(a.ordrenummer||0);});
-  andre.sort(function(a,b){return(b.ordrenummer||0)-(a.ordrenummer||0);});
-  return ux.concat(andre);
+  /* Innad i gruppe med eksakt samme tittel */
+  return salg.slice().sort(function(a,b){
+    var ra=typeRang(a),rb=typeRang(b);
+    if(ra!==rb)return ra-rb;
+    return(a.ordrenummer||0)-(b.ordrenummer||0); /* nyeste sist */
+  });
 }
 function sokFilter(s,q){
   if(!q)return true;
@@ -987,8 +1015,10 @@ function makeCard(s,erGruppert){
     '<div class="sc-actions">'+
       '<button class="status-btn'+(s.hentet?' ok-green':'')+'" data-action="hentet">'+(s.hentet?'✅':'☐')+' Hentet</button>'+
       '<button class="status-btn'+(s.betalt_kort?' ok-green':'')+'" data-action="betalt_kort">'+(s.betalt_kort?'✅':'☐')+' Betalt kort</button>'+
-      '<button class="status-btn'+(s.skal_ha_faktura?' ok-orange':'')+'" data-action="skal_faktura">'+(s.skal_ha_faktura?'📄 Skal ha faktura':'📄 Skal ha faktura')+'</button>'+
+      '<button class="status-btn'+(s.skal_ha_faktura?' ok-orange':'')+'" data-action="skal_faktura">📄 Skal ha faktura</button>'+
       '<button class="status-btn'+(s.faktura_sendt?' ok-green':'')+'" data-action="faktura">'+(s.faktura_sendt?'✅ Faktura sendt':'✉️ Faktura sendt')+'</button>'+
+      '<button class="status-btn'+(s.sendt_innramming?' ok-blue':'')+'" data-action="sendt_innramming">'+(s.sendt_innramming?'✅':'☐')+' Sendt til innramming</button>'+
+      '<button class="status-btn'+(s.sendt_hentemeld?' ok-green':'')+'" data-action="sendt_hentemeld">'+(s.sendt_hentemeld?'✅':'☐')+' Sendt hentemeld</button>'+
     '</div>'+
     '<div class="sc-bottom-row"><button class="sc-copy-btn" data-action="copy">📋 Kopier kvittering</button>'+arkiverKnapp+'<button class="sc-arkiver-btn" data-action="print">🖨️ Skriv ut</button><button class="sc-edit-btn" data-action="edit">✏️ Rediger</button><button class="sc-edit-btn" data-action="slett" style="color:#c0392b">🗑</button></div>'+
     '<div class="sc-inline-notat"><textarea class="sc-inline-notat-inp" placeholder="Skriv en rask notat…" data-action="notat">'+escHtml(s.notat||'')+'</textarea></div>';
@@ -997,6 +1027,8 @@ function makeCard(s,erGruppert){
   d.querySelector('[data-action=betalt_kort]').addEventListener('click',function(e){e.stopPropagation();toggle(s,'betalt_kort',this);});
   d.querySelector('[data-action=skal_faktura]').addEventListener('click',function(e){e.stopPropagation();toggle(s,'skal_ha_faktura',this);});
   d.querySelector('[data-action=faktura]').addEventListener('click',function(e){e.stopPropagation();toggle(s,'faktura_sendt',this);});
+  d.querySelector('[data-action=sendt_innramming]').addEventListener('click',function(e){e.stopPropagation();toggle(s,'sendt_innramming',this);});
+  d.querySelector('[data-action=sendt_hentemeld]').addEventListener('click',function(e){e.stopPropagation();toggle(s,'sendt_hentemeld',this);});
   d.querySelector('[data-action=edit]').addEventListener('click',function(e){e.stopPropagation();openModal(s);});
   d.querySelector('[data-action=print]').addEventListener('click',function(e){e.stopPropagation();skrivUtKort(s);});
   /* Inline notat – lagre ved blur */
@@ -1034,6 +1066,8 @@ async function toggle(s,field,btn){
     else if(field==='betalt_kort'){btn.className='status-btn'+(nv?' ok-green':'');btn.innerHTML=(nv?'✅':'☐')+' Betalt kort';}
     else if(field==='skal_ha_faktura'){btn.className='status-btn'+(nv?' ok-orange':'');btn.innerHTML='📄 Skal ha faktura';}
     else if(field==='faktura_sendt'){btn.className='status-btn'+(nv?' ok-green':'');btn.innerHTML=(nv?'✅ Faktura sendt':'✉️ Faktura sendt');}
+    else if(field==='sendt_innramming'){btn.className='status-btn'+(nv?' ok-blue':'');btn.innerHTML=(nv?'✅':'☐')+' Sendt til innramming';}
+    else if(field==='sendt_hentemeld'){btn.className='status-btn'+(nv?' ok-green':'');btn.innerHTML=(nv?'✅':'☐')+' Sendt hentemeld';}
   }
 }
 
