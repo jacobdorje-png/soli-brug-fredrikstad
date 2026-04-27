@@ -860,7 +860,7 @@ function byggFilterTabs(){
   var wrap=document.getElementById('filter-tabs');wrap.innerHTML='';
   var aktive=alleSalg.filter(function(s){return!s.arkiv&&s.butikk===aktivButikk;});
   var arkiverte=alleSalg.filter(function(s){return!!s.arkiv&&s.butikk===aktivButikk;});
-  var fakturaAntall=aktive.filter(function(s){return s.skal_ha_faktura&&!s.faktura_sendt;}).length;
+  var fakturaAntall=alleSalg.filter(function(s){return!s.arkiv&&s.skal_ha_faktura&&!s.faktura_sendt;}).length;
 
   var nylige=document.createElement('button');
   nylige.className='ftab'+(aktivFilter==='alle'&&!visArkiv&&!visFaktura?' active':'');
@@ -886,7 +886,12 @@ function byggFilterTabs(){
   ft.style.borderColor='#e07020';ft.style.color=visFaktura?'#fff':'#e07020';
   if(visFaktura)ft.style.background='#e07020';
   ft.textContent='📄 Faktura'+(fakturaAntall>0?' ('+fakturaAntall+')':'');
-  ft.addEventListener('click',function(){visFaktura=!visFaktura;visArkiv=false;aktivFilter='alle';sokeTekst='';document.getElementById('search-input').value='';oppdaterSokeUI();oppdaterArkivBar();renderSalg();byggFilterTabs();});
+  ft.addEventListener('click',async function(){
+    visFaktura=!visFaktura;visArkiv=false;aktivFilter='alle';sokeTekst='';
+    document.getElementById('search-input').value='';oppdaterSokeUI();oppdaterArkivBar();
+    if(visFaktura&&alleIr.length===0)await loadIr();
+    renderSalg();byggFilterTabs();
+  });
   wrap.appendChild(ft);
 
   if(arkiverte.length>0){
@@ -933,12 +938,22 @@ function renderSalg(){
 
   /* FAKTURA-VISNING */
   if(visFaktura){
-    document.getElementById('sales-title').textContent='📄 Skal ha faktura';
+    document.getElementById('sales-title').textContent='📄 Faktura – alle butikker';
     document.getElementById('excel-btn').style.display='none';
-    var fakturaSalg=alleSalg.filter(function(s){return!s.arkiv&&s.butikk===aktivButikk&&s.skal_ha_faktura&&!s.faktura_sendt;});
-    if(!fakturaSalg.length){document.getElementById('empty').style.display='block';document.getElementById('empty').textContent='Ingen utestående fakturaer.';return;}
+    /* Salg med skal_ha_faktura fra alle butikker (ikke arkiverte) */
+    var fakturaSalg=alleSalg.filter(function(s){return!s.arkiv&&s.skal_ha_faktura;});
+    /* Innrammingsjobber med skal_ha_faktura */
+    var fakturaIr=alleIr.filter(function(x){return x.skal_ha_faktura;});
+    if(!fakturaSalg.length&&!fakturaIr.length){
+      document.getElementById('empty').style.display='block';
+      document.getElementById('empty').textContent='Ingen salg med faktura.';
+      return;
+    }
+    /* Vis butikk-chip på hvert kort siden vi blander */
     fakturaSalg.forEach(function(s){list.appendChild(makeCard(s,false));});
-    visTotals(fakturaSalg);return;
+    fakturaIr.forEach(function(x){list.appendChild(makeIrCard(x));});
+    visTotals(fakturaSalg);
+    return;
   }
 
   /* ARKIVVISNING */
@@ -1299,11 +1314,17 @@ function makeIrCard(x){
     '<div class="ir-actions">'+
       '<button class="ir-btn ferdig-btn'+(x.status==='ferdig'?' ok':'')+'" data-action="ferdig">'+(x.status==='ferdig'?'✅ Ferdig':'Marker ferdig')+'</button>'+
       '<button class="ir-btn hentet-btn'+(x.status==='hentet'?' ok':'')+'" data-action="hentet">'+(x.status==='hentet'?'📦 Hentet':'Marker hentet')+'</button>'+
+      '<button class="ir-btn'+(x.skal_ha_faktura?' ok':'')+'" data-action="ir_faktura" style="border-color:#e07020;color:'+(x.skal_ha_faktura?'#fff':'#e07020')+';'+(x.skal_ha_faktura?'background:#e07020;':'')+'">📄 Faktura</button>'+
       '<button class="ir-btn" data-action="edit" style="margin-left:auto">✏️ Rediger</button>'+
     '</div>';
   var fb=d.querySelector('[data-action=foto]');if(fb)fb.addEventListener('click',function(){visFoto(x.bilde_url);});
   d.querySelector('[data-action=ferdig]').addEventListener('click',function(){setIrStatus(x,x.status==='ferdig'?'aktiv':'ferdig',this);});
   d.querySelector('[data-action=hentet]').addEventListener('click',function(){setIrStatus(x,x.status==='hentet'?'aktiv':'hentet',this);});
+  d.querySelector('[data-action=ir_faktura]').addEventListener('click',async function(){
+    var nv=!x.skal_ha_faktura;
+    var r=await sb.from('innramming').update({skal_ha_faktura:nv}).eq('id',x.id);
+    if(!r.error){x.skal_ha_faktura=nv;loadIr();}
+  });
   d.querySelector('[data-action=edit]').addEventListener('click',function(){openIrModal(x);});
   return d;
 }
