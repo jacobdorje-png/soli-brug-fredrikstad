@@ -661,46 +661,49 @@ function toLocalInput(iso){var d=new Date(iso);d.setMinutes(d.getMinutes()-d.get
 function nv(id){return parseFloat(document.getElementById(id).value)||0;}
 function calcT(p){var t=nv(p+'pris')+nv(p+'bkh')+nv(p+'ramme')+nv(p+'frakt');document.getElementById(p+'total').value=t>0?t:'';}
 
-/* Typeorden: UX øverst, deretter Grafikk, deretter Original/resten */
-function typeRang(s){
-  if(erUX(s.ramme_info))return 0;
-  if((s.type||'').toLowerCase()==='grafikk')return 1;
-  return 2; /* Original og ukjent */
+/* Rang for rammetype innad i gruppe: UX, MR, MAR, UR, resten */
+function rammeRang(s){
+  var ri=(s.ramme_info||'').toUpperCase().trim();
+  if(ri==='UX')return 0;
+  if(ri==='MR')return 1;
+  if(ri==='MAR')return 2;
+  if(ri==='UR')return 3;
+  return 4;
 }
 function sorterKD(data){
-  /* Grupper etter normalisert tittel, sorter innad */
+  /* Grupper etter normalisert tittel */
   var grupper={},rek=[];
   data.forEach(function(s){
     var norm=normTittel(s.tittel)||'(uten tittel)';
     if(!grupper[norm]){grupper[norm]=[];rek.push(norm);}
     grupper[norm].push(s);
   });
-  /* Sorter innad i hver gruppe: UX øverst, Grafikk midten, Original/resten nederst. Innen samme rang: nyeste SIST (asc) */
+  /* Sorter innad i gruppe: rammeRang, deretter eldste sist */
   rek.forEach(function(norm){
     grupper[norm].sort(function(a,b){
-      var ra=typeRang(a),rb=typeRang(b);
+      var ra=rammeRang(a),rb=rammeRang(b);
       if(ra!==rb)return ra-rb;
-      return(a.ordrenummer||0)-(b.ordrenummer||0); /* nyeste sist */
+      return(a.ordrenummer||0)-(b.ordrenummer||0);
     });
   });
-  /* Sorter tittelgrupper: grupper med UX øverst, deretter Grafikk, deretter Original */
+  /* Sorter tittelgrupper: Grafikk øverst, Original nederst */
   rek.sort(function(a,b){
-    var ra=Math.min.apply(null,grupper[a].map(typeRang));
-    var rb=Math.min.apply(null,grupper[b].map(typeRang));
+    var ta=(grupper[a][0].type||'').toLowerCase();
+    var tb=(grupper[b][0].type||'').toLowerCase();
+    var ra=ta==='original'?1:0;
+    var rb=tb==='original'?1:0;
     if(ra!==rb)return ra-rb;
     return a.localeCompare(b,'nb');
   });
-  /* Flat liste i riktig rekkefølge */
   var result=[];
   rek.forEach(function(norm){grupper[norm].forEach(function(s){result.push(s);});});
   return result;
 }
 function sorterG(salg){
-  /* Innad i gruppe med eksakt samme tittel */
   return salg.slice().sort(function(a,b){
-    var ra=typeRang(a),rb=typeRang(b);
+    var ra=rammeRang(a),rb=rammeRang(b);
     if(ra!==rb)return ra-rb;
-    return(a.ordrenummer||0)-(b.ordrenummer||0); /* nyeste sist */
+    return(a.ordrenummer||0)-(b.ordrenummer||0);
   });
 }
 function sokFilter(s,q){
@@ -885,7 +888,8 @@ function byggFilterTabs(){
 function oppdaterArkivBar(){document.getElementById('arkiv-bar').style.display=(!visArkiv&&aktivFilter!=='alle')?'flex':'none';}
 function oppdaterSokeUI(){document.getElementById('search-clear').className='search-clear'+(sokeTekst.length>0?' vis':'');}
 
-async function loadSales(){
+async function loadSales(bevarScroll){
+  var scrollY=bevarScroll?window.scrollY:0;
   document.getElementById('loading').style.display='block';
   document.getElementById('sales-list').innerHTML='';
   var r=await sb.from('salg').select('*').order('ordrenummer',{ascending:false});
@@ -893,6 +897,7 @@ async function loadSales(){
   if(r.error){document.getElementById('sales-list').innerHTML='<p style="color:var(--danger);font-weight:700">Feil: '+r.error.message+'</p>';return;}
   alleSalg=r.data||[];
   oppdaterAutocomplete();byggFilterTabs();oppdaterArkivBar();renderSalg();
+  if(bevarScroll)requestAnimationFrame(function(){window.scrollTo(0,scrollY);});
 }
 
 function renderSalg(){
@@ -1126,7 +1131,7 @@ async function utforArkivering(){
 async function hentUtArkiv(an){
   var ids=alleSalg.filter(function(s){return s.arkiv===an;}).map(function(s){return s.id;});
   var r=await sb.from('salg').update({arkiv:null}).in('id',ids);
-  if(!r.error)loadSales();
+  if(!r.error)loadSales(true);
 }
 
 function exportArkivExcel(arkivNavn,salg){
@@ -1345,7 +1350,7 @@ async function saveSale(){
   }
 
   btn.disabled=false;btn.textContent='Lagre endringer';
-  closeModal();loadSales();
+  closeModal();loadSales(true);
 }
 
 /* ══════════════ MODAL: REDIGER INNRAMMING ══════════════ */
@@ -1379,7 +1384,7 @@ async function saveIr(){
 async function slettSalg(s){
   if(!confirm('Slette salg '+onr(s.ordrenummer)+' – '+(s.kunstner||s.navn||'')+'?\nDette kan ikke angres.'))return;
   var r=await sb.from('salg').delete().eq('id',s.id);
-  if(!r.error)loadSales();
+  if(!r.error)loadSales(true);
   else alert('Feil: '+r.error.message);
 }
 
