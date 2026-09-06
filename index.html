@@ -2625,6 +2625,36 @@ function exportExcel(){
   bygExcelFraSalg(data,filnavn,erEkstra);
 }
 
+/* ══════════════ SPESIALFORDELING PER KUNSTNER ══════════════
+   Beregner {tilSoli, tilKunstner} basert på kunstner/type/pris.
+   Standard: 40% Soli / 60% kunstner. Unntak:
+   - Hanne Linnes, Liz Ravn, Jane Hupe:            45% / 55%
+   - Nico Widerberg (skulptur = type 'Original'):  30% / 70%
+   - Petter Hepsø (skulptur = type 'Original'):    total / 3 til Soli, resten til kunstner
+     (evt. øre-avvik går til Petter) */
+function beregnFordeling(kunstner,type,pris){
+  var p=pris||0;
+  var k=(kunstner||'').trim();
+  var t=(type||'').trim();
+  var tilSoli,tilKunstner;
+  if(k==='Petter Hepsø'&&t==='Original'){
+    /* Skulpturer: floor(pris/3) til Soli, resten til kunstner (kronen "gis" til Petter) */
+    tilSoli=Math.floor(p/3);
+    tilKunstner=p-tilSoli;
+  } else if(k==='Nico Widerberg'&&t==='Original'){
+    tilSoli=Math.round(p*0.3);
+    tilKunstner=p-tilSoli;
+  } else if(k==='Hanne Linnes'||k==='Liz Ravn'||k==='Jane Hupe'){
+    tilSoli=Math.round(p*0.45);
+    tilKunstner=p-tilSoli;
+  } else {
+    /* Standard 40/60 */
+    tilSoli=Math.round(p*0.4);
+    tilKunstner=p-tilSoli;
+  }
+  return{tilSoli:tilSoli,tilKunstner:tilKunstner};
+}
+
 /* Eksporter kun én kunstner – enkelt oppgjør-format (Tittel | Pris | Til Kunstner | Kontonummer + SUM) */
 function eksporterKunstnerExcel(kunstnerNavn){
   var data=salgIAktivVisning().filter(function(s){return(s.kunstner||'(ukjent)')===kunstnerNavn;});
@@ -2641,36 +2671,42 @@ function eksporterKunstnerExcel(kunstnerNavn){
 
   function lagXlsx(){
     var XLSX=window.XLSX;
-    var wsData=[['Tittel:','Pris:','Til Kunstner:','Kontonummer:']];
+    /* 4 tomme rader øverst for logo-plassering, deretter header + data + SUM */
+    var LOGO_ROWS=4;
+    var wsData=[];
+    for(var i=0;i<LOGO_ROWS;i++)wsData.push(['','','','']);
+    wsData.push(['Tittel:','Pris:','Til Kunstner:','Kontonummer:']);
+    var headerRadIdx=wsData.length-1;
     var sumPris=0,sumTilKunstner=0;
     data.forEach(function(s){
       var pris=s.pris||0;
-      var tilKunstner=Math.round(pris*0.6);
-      sumPris+=pris;sumTilKunstner+=tilKunstner;
-      wsData.push([s.tittel||'',pris,tilKunstner,'']);
+      var f=beregnFordeling(s.kunstner,s.type,pris);
+      sumPris+=pris;sumTilKunstner+=f.tilKunstner;
+      wsData.push([s.tittel||'',pris,f.tilKunstner,'']);
     });
     var sumRadIdx=wsData.length;
     wsData.push(['SUM:',sumPris,sumTilKunstner,'']);
 
     var ws=XLSX.utils.aoa_to_sheet(wsData);
     ws['!cols']=[{wch:36},{wch:30},{wch:27},{wch:27}];
-    ws['!rows']=[{hpt:26}];
+    ws['!rows']=[];
+    for(var i=0;i<LOGO_ROWS;i++)ws['!rows'].push({hpt:24}); /* logo-plass */
+    ws['!rows'].push({hpt:26}); /* header */
     for(var i=0;i<data.length;i++)ws['!rows'].push({hpt:24});
-    ws['!rows'].push({hpt:26});
-    /* Marger for landscape-utskrift – litt større top for å gi plass til logoen i header */
-    ws['!margins']={left:0.7,right:0.7,top:1.0,bottom:0.75,header:0.3,footer:0.3};
+    ws['!rows'].push({hpt:26}); /* SUM */
+    ws['!margins']={left:0.7,right:0.7,top:0.75,bottom:0.75,header:0.3,footer:0.3};
 
     if(XLSX.__hasStyle){
       var mediumBorder={style:'medium',color:{rgb:'000000'}};
       var thinBorder={style:'thin',color:{rgb:'000000'}};
       /* HEADER-rad */
       for(var c=0;c<4;c++){
-        var ah=XLSX.utils.encode_cell({r:0,c:c});
+        var ah=XLSX.utils.encode_cell({r:headerRadIdx,c:c});
         if(!ws[ah])ws[ah]={t:'s',v:''};
         ws[ah].s={font:{bold:true,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:mediumBorder,bottom:mediumBorder,left:mediumBorder,right:mediumBorder}};
       }
       /* DATA-rader */
-      for(var r=1;r<sumRadIdx;r++){
+      for(var r=headerRadIdx+1;r<sumRadIdx;r++){
         for(var c=0;c<4;c++){
           var a=XLSX.utils.encode_cell({r:r,c:c});
           if(!ws[a])ws[a]={t:c===1||c===2?'n':'s',v:c===1||c===2?0:''};
@@ -2692,11 +2728,11 @@ function eksporterKunstnerExcel(kunstnerNavn){
     var wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
     var blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 
-    /* Legg til topp/bunntekst + landscape via JSZip (SheetJS støtter ikke dette direkte) */
-    leggTilHeaderFooterOgLandscape(blob,kunstnerNavn,ekstraNavn).then(function(nyBlob){
+    /* Legg til inline logo (i A1) + topp/bunntekst + landscape via JSZip */
+    leggTilLogoOgHeaderFooter(blob,kunstnerNavn,ekstraNavn).then(function(nyBlob){
       delEllerLastNed(nyBlob,filnavn,'📊 «'+filnavn+'» er klar');
     }).catch(function(err){
-      console.warn('Kunne ikke legge til topptekst/bunntekst:',err);
+      console.warn('Kunne ikke legge til logo/topptekst:',err);
       delEllerLastNed(blob,filnavn,'📊 «'+filnavn+'» er klar');
     });
   }
@@ -2705,8 +2741,111 @@ function eksporterKunstnerExcel(kunstnerNavn){
   else{var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js';s.onload=function(){window.XLSX.__hasStyle=true;lagXlsx();};document.head.appendChild(s);}
 }
 
-/* Legger til topptekst, bunntekst, logo og landscape-orientering ved å manipulere xlsx-XML direkte (via JSZip) */
-function leggTilHeaderFooterOgLandscape(blob,kunstnerNavn,ekstraNavn){
+/* Legger til inline logo (som bilde i A1), topptekst, bunntekst og landscape-orientering
+   ved å manipulere xlsx-XML direkte (via JSZip). SheetJS støtter ikke dette direkte. */
+function leggTilLogoOgHeaderFooter(blob,kunstnerNavn,ekstraNavn){
+  function gjor(){
+    return JSZip.loadAsync(blob).then(function(zip){
+      var sheetPath='xl/worksheets/sheet1.xml';
+      var file=zip.file(sheetPath);
+      if(!file)return blob;
+
+      /* Konverter base64-logo til bytes */
+      var b64=SOLI_LOGO_B64.replace(/^data:image\/png;base64,/,'');
+      var binStr=atob(b64);
+      var bytes=new Uint8Array(binStr.length);
+      for(var i=0;i<binStr.length;i++)bytes[i]=binStr.charCodeAt(i);
+      zip.file('xl/media/image1.png',bytes);
+
+      /* Drawing XML: posisjonerer logoen i A1-hjørnet (fast størrelse, ~46mm bredde) */
+      var drawingXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        +'<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        +'<xdr:oneCellAnchor>'
+          +'<xdr:from><xdr:col>0</xdr:col><xdr:colOff>50000</xdr:colOff><xdr:row>0</xdr:row><xdr:rowOff>50000</xdr:rowOff></xdr:from>'
+          +'<xdr:ext cx="1666667" cy="700000"/>'
+          +'<xdr:pic>'
+            +'<xdr:nvPicPr><xdr:cNvPr id="1" name="Logo Soli Brug"/><xdr:cNvPicPr/></xdr:nvPicPr>'
+            +'<xdr:blipFill><a:blip r:embed="rIdImg1"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>'
+            +'<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="1666667" cy="700000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr>'
+          +'</xdr:pic>'
+          +'<xdr:clientData/>'
+        +'</xdr:oneCellAnchor></xdr:wsDr>';
+      zip.file('xl/drawings/drawing1.xml',drawingXml);
+
+      /* Relasjon drawing → image */
+      var drawingRelsXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        +'<Relationship Id="rIdImg1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/>'
+        +'</Relationships>';
+      zip.file('xl/drawings/_rels/drawing1.xml.rels',drawingRelsXml);
+
+      /* Oppdater sheet1.xml med drawing-ref, pageSetup, headerFooter (tomme utfyllingsfelt) */
+      return file.async('string').then(function(xml){
+        var oddHeader='&amp;LSoli Brug AS&amp;COversikt over salg i perioden: &amp;RKunstner: ';
+        var oddFooter='&amp;LSoli Brug AS&amp;CKontakt: Jacob D'+String.fromCharCode(248)+'rje. Tlf: 98071211\r\nMail: jacob@soli-brug.no';
+        var headerFooterXml='<headerFooter><oddHeader>'+oddHeader+'</oddHeader><oddFooter>'+oddFooter+'</oddFooter></headerFooter>';
+        var pageSetupXml='<pageSetup orientation="landscape" paperSize="9"/>';
+        var drawingRef='<drawing r:id="rIdDraw1"/>';
+        /* Fjern eksisterende først */
+        xml=xml.replace(/<headerFooter[\s\S]*?<\/headerFooter>/g,'');
+        xml=xml.replace(/<pageSetup[^\/]*\/>/g,'');
+        xml=xml.replace(/<drawing[^\/]*\/>/g,'');
+        xml=xml.replace(/<legacyDrawingHF[^\/]*\/>/g,'');
+        /* OOXML-rekkefølge: pageMargins → pageSetup → headerFooter → ... → drawing */
+        var pageMarginsMatch=xml.match(/<pageMargins[^\/]*\/>/);
+        if(pageMarginsMatch){
+          xml=xml.replace(pageMarginsMatch[0],pageMarginsMatch[0]+pageSetupXml+headerFooterXml);
+        } else {
+          xml=xml.replace('</worksheet>',pageSetupXml+headerFooterXml+'</worksheet>');
+        }
+        /* drawing kommer sist – etter ignoredErrors, før </worksheet> */
+        xml=xml.replace('</worksheet>',drawingRef+'</worksheet>');
+        zip.file(sheetPath,xml);
+
+        /* sheet1.xml.rels – legg til drawing-relasjon */
+        var sheetRelsPath='xl/worksheets/_rels/sheet1.xml.rels';
+        var drawRel='<Relationship Id="rIdDraw1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/>';
+        var existing=zip.file(sheetRelsPath);
+        var relsPromise;
+        if(existing){
+          relsPromise=existing.async('string').then(function(rels){
+            rels=rels.replace('</Relationships>',drawRel+'</Relationships>');
+            zip.file(sheetRelsPath,rels);
+          });
+        } else {
+          var newRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            +drawRel+'</Relationships>';
+          zip.file(sheetRelsPath,newRels);
+          relsPromise=Promise.resolve();
+        }
+
+        /* Content_Types.xml – legg til png og drawing MIME-typer */
+        var ctPromise=zip.file('[Content_Types].xml').async('string').then(function(ct){
+          if(ct.indexOf('Extension="png"')===-1){
+            ct=ct.replace('<Default','<Default Extension="png" ContentType="image/png"/><Default');
+          }
+          if(ct.indexOf('drawing+xml')===-1){
+            ct=ct.replace('</Types>','<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>');
+          }
+          zip.file('[Content_Types].xml',ct);
+        });
+
+        return Promise.all([relsPromise,ctPromise]).then(function(){
+          return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        });
+      });
+    });
+  }
+  if(window.JSZip)return gjor();
+  return new Promise(function(resolve,reject){
+    var s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    s.onload=function(){gjor().then(resolve,reject);};
+    s.onerror=function(){reject(new Error('Kunne ikke laste JSZip'));};
+    document.head.appendChild(s);
+  });
+}
   function gjor(){
     return JSZip.loadAsync(blob).then(function(zip){
       var sheetPath='xl/worksheets/sheet1.xml';
@@ -2826,31 +2965,33 @@ function leggTilHeaderFooterOgLandscape(blob,kunstnerNavn,ekstraNavn){
 function bygExcelFraSalg(data,filnavn,erEkstra){
   if(!data.length)return;
 
-  /* Kolonne-rekkefølge:
-     Ordrenr | Dato | Navn | Telefon | E-post | Adresse | Kunstner | Tittel | Edisjon
-     | Pris | BKH (5%) | Rammepris | Rammeinfo
-     | Til Soli (40%) | Til kunstner (60%) | Sum til kunstner
-     | Frakt | Total | Levering | Hentet | Faktura sendt | Selger | Info om salget */
+  /* Kolonne-rekkefølge (uten Edisjon, Rammeinfo, Info om salget):
+     Ordrenr | Dato | Navn | Telefon | E-post | Adresse | Kunstner | Tittel
+     | Pris | BKH (5%) | Rammepris
+     | Til Soli | Til kunstner | Sum til kunstner | Kontonummer
+     | Frakt | Total | Levering | Hentet | Faktura sendt | Selger */
   function radForSalg(s){
     var pris=s.pris||0;
-    var tilSoli=Math.round(pris*0.4);
-    var tilKunstner=Math.round(pris*0.6);
+    var f=beregnFordeling(s.kunstner,s.type,pris);
     return[
       salgOnr(s),fmt(s.created_at),s.navn||'',s.telefon||'',s.epost||'',s.adresse||'',
-      s.kunstner||'',s.tittel||'',s.edisjon||'',
-      pris,s.bkh||0,s.ramme||0,s.ramme_info||'',
-      tilSoli,tilKunstner,'',  /* siste er "Sum til kunstner" – fylles for siste rad per kunstner */
-      s.frakt||0,s.total||0,s.levering?'Ja':'Nei',s.hentet?'Ja':'Nei',s.faktura_sendt?'Ja':'Nei',s.selger||'',s.notat||''
+      s.kunstner||'',s.tittel||'',
+      pris,s.bkh||0,s.ramme||0,
+      f.tilSoli,f.tilKunstner,'',/* Sum til kunstner – fylles for siste rad per kunstner */
+      '',/* Kontonummer – tomt for utfylling */
+      s.frakt||0,s.total||0,s.levering?'Ja':'Nei',s.hentet?'Ja':'Nei',s.faktura_sendt?'Ja':'Nei',s.selger||''
     ];
   }
-  var HEADER=['Ordrenr','Dato','Navn','Telefon','E-post','Adresse','Kunstner','Tittel','Edisjon','Pris','BKH (5%)','Rammepris','Rammeinfo','Til Soli (40%)','Til kunstner (60%)','Sum til kunstner','Frakt','Total','Levering','Hentet','Faktura sendt','Selger','Info om salget'];
-  var IDX_SUM=15;
+  var HEADER=['Ordrenr','Dato','Navn','Telefon','E-post','Adresse','Kunstner','Tittel','Pris','BKH (5%)','Rammepris','Til Soli','Til kunstner','Sum til kunstner','Kontonummer','Frakt','Total','Levering','Hentet','Faktura sendt','Selger'];
+  var IDX_TIL_SOLI=11;
+  var IDX_TIL_KUNSTNER=12;
+  var IDX_SUM=13;
+  var IDX_KONTO=14;
   var NUM_COLS=HEADER.length;
 
   function lagXlsx(){
     var XLSX=window.XLSX;
     var wsData=[HEADER];
-    var boldRows=[0];
     var kunstnerHeaderRows=[];
     var sumRows=[];
 
@@ -2862,7 +3003,6 @@ function bygExcelFraSalg(data,filnavn,erEkstra){
       grupper[k].push(s);
     });
     var kunstnere=Object.keys(grupper).sort(function(a,b){return a.localeCompare(b,'nb');});
-    function typeRang(s){var t=(s.type||'').toLowerCase();if(t==='grafikk')return 2;if(t==='monotypi')return 1;return 0;}
 
     kunstnere.forEach(function(kunstner,idx){
       if(erEkstra){
@@ -2870,12 +3010,14 @@ function bygExcelFraSalg(data,filnavn,erEkstra){
         kunstnerHeaderRows.push(wsData.length);
         wsData.push(['🎨 '+kunstner+' ('+grupper[kunstner].length+' salg)']);
       }
+      /* SORTERT ETTER DATO (created_at, eldste øverst) */
       var salgSortert=grupper[kunstner].slice().sort(function(a,b){
-        var ra=typeRang(a),rb=typeRang(b);
-        if(ra!==rb)return ra-rb;
-        return (a.tittel||'').localeCompare(b.tittel||'','nb');
+        return (a.created_at||'').localeCompare(b.created_at||'');
       });
-      var sumTilKunstner=salgSortert.reduce(function(acc,s){return acc+Math.round((s.pris||0)*0.6);},0);
+      /* Beregn sum til kunstner for denne gruppen */
+      var sumTilKunstner=salgSortert.reduce(function(acc,s){
+        return acc+beregnFordeling(s.kunstner,s.type,s.pris||0).tilKunstner;
+      },0);
       salgSortert.forEach(function(s,i){
         var rad=radForSalg(s);
         if(i===salgSortert.length-1){
@@ -2890,47 +3032,49 @@ function bygExcelFraSalg(data,filnavn,erEkstra){
     var totPris=data.reduce(function(a,s){return a+(s.pris||0);},0);
     var totBkh=data.reduce(function(a,s){return a+(s.bkh||0);},0);
     var totRamme=data.reduce(function(a,s){return a+(s.ramme||0);},0);
-    var totTilSoli=data.reduce(function(a,s){return a+Math.round((s.pris||0)*0.4);},0);
-    var totTilKunstner=data.reduce(function(a,s){return a+Math.round((s.pris||0)*0.6);},0);
+    var totTilSoli=data.reduce(function(a,s){return a+beregnFordeling(s.kunstner,s.type,s.pris||0).tilSoli;},0);
+    var totTilKunstner=data.reduce(function(a,s){return a+beregnFordeling(s.kunstner,s.type,s.pris||0).tilKunstner;},0);
     var totFrakt=data.reduce(function(a,s){return a+(s.frakt||0);},0);
     var totTotal=data.reduce(function(a,s){return a+(s.total||0);},0);
     /* 2 tomme rader før sammendrag */
     wsData.push([]);wsData.push([]);
-    /* TOTALER-rad (fet, matcher tabellkolonnene) */
+    /* TOTALER-rad */
     var totalRadIdx=wsData.length;
     var totalRad=new Array(NUM_COLS).fill('');
     totalRad[0]='TOTALT';
-    totalRad[9]=totPris;
-    totalRad[10]=totBkh;
-    totalRad[11]=totRamme;
-    totalRad[13]=totTilSoli;
-    totalRad[14]=totTilKunstner;
-    totalRad[15]=totTilKunstner; /* Total sum til alle kunstnere */
-    totalRad[16]=totFrakt;
-    totalRad[17]=totTotal;
+    totalRad[8]=totPris;
+    totalRad[9]=totBkh;
+    totalRad[10]=totRamme;
+    totalRad[IDX_TIL_SOLI]=totTilSoli;
+    totalRad[IDX_TIL_KUNSTNER]=totTilKunstner;
+    totalRad[IDX_SUM]=totTilKunstner;
+    totalRad[15]=totFrakt;
+    totalRad[16]=totTotal;
     wsData.push(totalRad);
     /* Antall salg-rad */
     var antallRadIdx=wsData.length;
     var antallRad=new Array(NUM_COLS).fill('');
     antallRad[0]='ANTALL SALG';
-    antallRad[9]=data.length;
+    antallRad[8]=data.length;
     wsData.push(antallRad);
 
     var ws=XLSX.utils.aoa_to_sheet(wsData);
     ws['!cols']=[
-      {wch:12},{wch:12},{wch:22},{wch:14},{wch:24},{wch:28},
-      {wch:20},{wch:24},{wch:10},
-      {wch:12},{wch:10},{wch:10},{wch:16},
-      {wch:14},{wch:16},{wch:16},
-      {wch:8},{wch:10},{wch:9},{wch:8},{wch:14},{wch:14},{wch:30}
+      {wch:12},{wch:12},{wch:22},{wch:14},{wch:24},{wch:28},  /* Ordrenr..Adresse */
+      {wch:20},{wch:24},                                      /* Kunstner, Tittel */
+      {wch:12},{wch:10},{wch:10},                             /* Pris, BKH, Rammepris */
+      {wch:12},{wch:14},{wch:16},{wch:20},                    /* Til Soli, Til kunstner, Sum, Kontonummer */
+      {wch:8},{wch:10},{wch:9},{wch:8},{wch:14},{wch:14}      /* Frakt..Selger */
     ];
 
     if(XLSX.__hasStyle){
+      /* Header-rad */
       for(var c=0;c<NUM_COLS;c++){
         var a=XLSX.utils.encode_cell({r:0,c:c});
         if(!ws[a])ws[a]={t:'s',v:''};
         ws[a].s={font:{bold:true,sz:11},fill:{fgColor:{rgb:'F5C060'}},alignment:{horizontal:'center',vertical:'center'}};
       }
+      /* Kunstner-header (kun ekstralister) */
       kunstnerHeaderRows.forEach(function(r){
         for(var c=0;c<NUM_COLS;c++){
           var a=XLSX.utils.encode_cell({r:r,c:c});
@@ -2938,21 +3082,26 @@ function bygExcelFraSalg(data,filnavn,erEkstra){
           ws[a].s={font:{bold:true,sz:13,color:{rgb:'7A5020'}},fill:{fgColor:{rgb:'FEF7E8'}}};
         }
       });
+      /* Sum-rad: uthev "Sum til kunstner"-cellen (grønn) */
       sumRows.forEach(function(r){
         var a=XLSX.utils.encode_cell({r:r,c:IDX_SUM});
         if(!ws[a])ws[a]={t:'n',v:0};
         ws[a].s={font:{bold:true,sz:12,color:{rgb:'1A5A3A'}},fill:{fgColor:{rgb:'D4EDDA'}},alignment:{horizontal:'right'}};
       });
+      /* Uthev Til Soli/Til Kunstner + Kontonummer på datarader */
       for(var r=1;r<wsData.length-2;r++){
         if(kunstnerHeaderRows.indexOf(r)>-1)continue;
         if(r===totalRadIdx||r===antallRadIdx)continue;
         if(!wsData[r]||!wsData[r].length)continue;
-        var aS=XLSX.utils.encode_cell({r:r,c:13});
-        var aK=XLSX.utils.encode_cell({r:r,c:14});
+        var aS=XLSX.utils.encode_cell({r:r,c:IDX_TIL_SOLI});
+        var aK=XLSX.utils.encode_cell({r:r,c:IDX_TIL_KUNSTNER});
+        var aKn=XLSX.utils.encode_cell({r:r,c:IDX_KONTO});
         if(ws[aS])ws[aS].s={fill:{fgColor:{rgb:'E8F5EC'}},font:{color:{rgb:'2A5A40'}}};
         if(ws[aK])ws[aK].s={fill:{fgColor:{rgb:'C8E6D0'}},font:{color:{rgb:'1A5A3A'},bold:true}};
+        if(!ws[aKn])ws[aKn]={t:'s',v:''};
+        ws[aKn].s={fill:{fgColor:{rgb:'FEF7C8'}}};
       }
-      /* TOTALT-raden – fet med sterk beige-bakgrunn og gul topp-border */
+      /* TOTALT-raden */
       for(var c=0;c<NUM_COLS;c++){
         var at=XLSX.utils.encode_cell({r:totalRadIdx,c:c});
         if(!ws[at])ws[at]={t:'s',v:''};
@@ -2960,17 +3109,17 @@ function bygExcelFraSalg(data,filnavn,erEkstra){
           font:{bold:true,sz:12,color:{rgb:'333333'}},
           fill:{fgColor:{rgb:'F5E4A8'}},
           border:{top:{style:'medium',color:{rgb:'B08820'}},bottom:{style:'medium',color:{rgb:'B08820'}}},
-          alignment:{horizontal:c>=9?'right':'left'}
+          alignment:{horizontal:c>=8?'right':'left'}
         };
       }
-      /* ANTALL SALG-raden – fet med lys bakgrunn */
+      /* ANTALL SALG-raden */
       for(var c=0;c<NUM_COLS;c++){
         var aa=XLSX.utils.encode_cell({r:antallRadIdx,c:c});
         if(!ws[aa])ws[aa]={t:'s',v:''};
         ws[aa].s={
           font:{bold:true,sz:11,color:{rgb:'555555'}},
           fill:{fgColor:{rgb:'FAF0D4'}},
-          alignment:{horizontal:c===9?'right':'left'}
+          alignment:{horizontal:c===8?'right':'left'}
         };
       }
     }
