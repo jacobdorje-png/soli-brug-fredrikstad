@@ -2699,16 +2699,20 @@ function getKontonummer(kunstnerNavn,type){
 }
 
 /* ══════════════ SPESIALFORDELING PER KUNSTNER ══════════════
-   Beregner {tilSoli, tilKunstner} basert på kunstner/type/pris.
+   Beregner {tilSoli, tilKunstner} basert på kunstner/type/pris/tittel.
    Standard: 40% Soli / 60% kunstner. Unntak:
-   - Hanne Linnes, Liz Ravn, Jane Hupe, Lise Amundsen:  45% / 55%
-   - Nico Widerberg (skulptur = type 'Original'):       30% / 70%
-   - Petter Hepsø (skulptur = type 'Original'):         total / 3 til Soli, resten til kunstner
-     (evt. øre-avvik går til Petter) */
-function beregnFordeling(kunstner,type,pris){
+   - Hanne Linnes, Liz Ravn, Jane Hupe, Martin Schreiner:  45% / 55%
+   - Lise Amundsen:                                        35% / 65%
+   - Nico Widerberg (skulptur = type 'Original'):          30% / 70%
+   - Petter Hepsø (skulptur = type 'Original'):            total / 3 til Soli, resten til kunstner
+     (evt. øre-avvik går til Petter)
+   - Randi Strand, KUN bildet "The shores of Amerikay" (Americay/Amerikay): 60% / 40%
+     Andre Randi Strand-bilder følger standard 40/60. */
+function beregnFordeling(kunstner,type,pris,tittel){
   var p=pris||0;
   var k=(kunstner||'').trim();
   var t=(type||'').trim();
+  var ti=(tittel||'').toLowerCase();
   var tilSoli,tilKunstner;
   if(k==='Petter Hepsø'&&t==='Original'){
     tilSoli=Math.floor(p/3);
@@ -2716,7 +2720,15 @@ function beregnFordeling(kunstner,type,pris){
   } else if(k==='Nico Widerberg'&&t==='Original'){
     tilSoli=Math.round(p*0.3);
     tilKunstner=p-tilSoli;
-  } else if(k==='Hanne Linnes'||k==='Liz Ravn'||k==='Jane Hupe'||k==='Lise Amundsen'){
+  } else if(k==='Randi Strand'&&/ameri[ck]ay/i.test(ti)){
+    /* Spesialbilde: 60% til Soli, 40% til Randi */
+    tilSoli=Math.round(p*0.6);
+    tilKunstner=p-tilSoli;
+  } else if(k==='Lise Amundsen'){
+    /* 35% til Soli, 65% til Lise */
+    tilSoli=Math.round(p*0.35);
+    tilKunstner=p-tilSoli;
+  } else if(k==='Hanne Linnes'||k==='Liz Ravn'||k==='Jane Hupe'||k==='Martin Schreiner'){
     tilSoli=Math.round(p*0.45);
     tilKunstner=p-tilSoli;
   } else {
@@ -2752,7 +2764,7 @@ function eksporterKunstnerExcel(kunstnerNavn){
     /* Hent kontonummer for kunstneren (kan variere per type, f.eks. Sverre Bjertnæs) */
     data.forEach(function(s){
       var pris=s.pris||0;
-      var f=beregnFordeling(s.kunstner,s.type,pris);
+      var f=beregnFordeling(s.kunstner,s.type,pris,s.tittel);
       sumPris+=pris;sumTilKunstner+=f.tilKunstner;
       wsData.push([s.tittel||'',pris,f.tilKunstner,getKontonummer(s.kunstner,s.type)]);
     });
@@ -2930,7 +2942,7 @@ function bygExcelFraSalg(data,filnavn,erEkstra){
      | Frakt | Total | Levering | Hentet | Faktura sendt | Selger */
   function radForSalg(s){
     var pris=s.pris||0;
-    var f=beregnFordeling(s.kunstner,s.type,pris);
+    var f=beregnFordeling(s.kunstner,s.type,pris,s.tittel);
     return[
       salgOnr(s),fmt(s.created_at),s.navn||'',s.telefon||'',s.epost||'',s.adresse||'',
       s.kunstner||'',s.tittel||'',
@@ -2974,7 +2986,7 @@ function bygExcelFraSalg(data,filnavn,erEkstra){
       });
       /* Beregn sum til kunstner for denne gruppen */
       var sumTilKunstner=salgSortert.reduce(function(acc,s){
-        return acc+beregnFordeling(s.kunstner,s.type,s.pris||0).tilKunstner;
+        return acc+beregnFordeling(s.kunstner,s.type,s.pris||0,s.tittel).tilKunstner;
       },0);
       salgSortert.forEach(function(s,i){
         var rad=radForSalg(s);
@@ -2990,8 +3002,8 @@ function bygExcelFraSalg(data,filnavn,erEkstra){
     var totPris=data.reduce(function(a,s){return a+(s.pris||0);},0);
     var totBkh=data.reduce(function(a,s){return a+(s.bkh||0);},0);
     var totRamme=data.reduce(function(a,s){return a+(s.ramme||0);},0);
-    var totTilSoli=data.reduce(function(a,s){return a+beregnFordeling(s.kunstner,s.type,s.pris||0).tilSoli;},0);
-    var totTilKunstner=data.reduce(function(a,s){return a+beregnFordeling(s.kunstner,s.type,s.pris||0).tilKunstner;},0);
+    var totTilSoli=data.reduce(function(a,s){return a+beregnFordeling(s.kunstner,s.type,s.pris||0,s.tittel).tilSoli;},0);
+    var totTilKunstner=data.reduce(function(a,s){return a+beregnFordeling(s.kunstner,s.type,s.pris||0,s.tittel).tilKunstner;},0);
     var totFrakt=data.reduce(function(a,s){return a+(s.frakt||0);},0);
     var totTotal=data.reduce(function(a,s){return a+(s.total||0);},0);
     /* 2 tomme rader før sammendrag */
