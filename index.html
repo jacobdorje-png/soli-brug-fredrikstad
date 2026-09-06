@@ -2625,12 +2625,85 @@ function exportExcel(){
   bygExcelFraSalg(data,filnavn,erEkstra);
 }
 
+/* ══════════════ KUNSTNER KONTONUMMER ══════════════
+   Kunstner-navn → kontonummer. Fylles automatisk inn i oppgjor-Excel.
+   Enkelte kunstnere har flere numre (f.eks. Sverre Bjertnæs har egne for Grafikk og Maleri) –
+   getKontonummer() håndterer dette basert på type. */
+var KUNSTNER_KONTO={
+'Ana Luisa Rebora':'1020.21.85946','Bjarne Melgaard':'6401.06.36483','Davood Zandian':'1203.43.26078',
+'Eli Hovdenak':'9710.41.49123','Elling Reitan':'4212.01.21566','Erik Formoe':'9713.35.99731',
+'Laska':'9230.21.02475','Eva Harr':'1207.08.53831','Eva Langås':'1208.64.29134',
+'Frank Brunner':'1506.62.70251','Gabrielle Kielland':'6023.10.01525','Gro Fraas':'7032.14.14689',
+'Guttorm Nordø':'0540.19.86857','Hans Nordmann Dahl':'1224.19.84360','Herman Hebler':'6106.10.01165',
+'Hilde Vemren':'6011.10.46614','Jan Brænde':'2085.28.90917','Jan Harr':'1607.38.57612',
+'Jan Svensen':'9710.46.59792','Karen Klim':'1600.13.52338','Kikki Hovland':'1201.04.80777',
+'Larry Welo':'2220.06.02556','Lars Elling':'9053.05.00801','Lars-Ole Klavestad':'1201.28.77461',
+'Magne Furuholmen':'1506.07.95484','Magne Rygh':'1600.50.08623','Marianne Heske':'1600.50.99386',
+'Marilyn Amatruda':'1600.51.77387','Monica Stø':'1440.11.96901','Nico Widerberg':'1609.51.64904',
+'Ole Dørje':'1594.40.12777','Ole Lislerud':'6215.11.45626','Per Fronth':'3090.11.96121',
+'Pushwagner':'7056.10.86794','Elin Rossing':'1822.47.73257','Randi Strand':'6580.11.25063',
+'Rino Larsen':'9865.05.57530','Rolf Nerli':'2400.14.45355','Ronny Bank':'3450.35.13600',
+'Warsinski':'7032.14.07968','Terje Resell':'9710.38.24250','Tiina Kivinen':'fi.90.8000.2318.520789',
+'Tom Erik Andersen':'2260.12.13633','Tor Arne Moen':'2646.07.09627','Vibeke Jerkaas':'9483.06.40546',
+'Ørnulf Opdahl':'3900.34.29729','Åke Berg':'1201.11.84926','Karoline Kaaber':'2801.12.76794',
+'Gunilla Holm':'9365.06.17477','Nupen':'3000.09.42932','Håkon Gullvåg':'4202.06.77699',
+'An Doan Nguyen':'1645.08.52558','Kjell Nupen':'3000.09.42932','Petter Hepsø':'6129.12.43559',
+'Finn Hald':'1210.38.53107','Elvar Ørn':'9801.19.03770','Pernille Guldbrandsen':'1594.25.71868',
+'Dzevad Handzic':'1204.04.90564','Gro Mukta Holter':'8101.16.68712','Heidi Holje':'6173.11.31588',
+'Bjertnæs/Melgaard':'6401.46.06562','Tone Dietrichson':'6030.10.74649',
+'Anne Gaupen Berg':'1202.72.33080','Guri Ødegaard':'9713.63.51404','Leif Nyland':'1040.10.76927',
+'Johan Reisang':'9801.45.22980','Glenn Skibsted':'6580.45.14079','Stian Borgen':'1202.68.01069',
+'Jane Hupe':'6206.11.73299','Jorun Wisløff':'3060.35.42068','Dimitri':'6090.06.35454',
+'Line Schjølberg':'1607.37.01566','Odd Skullerud':'1594.41.79663',
+'Anne Kristin Hagesæther':'9365.13.35866','Kenneth Blom':'1224.87.14091',
+'Martin Schreiner':'1594.50.02910','David Sandum':'1203.42.09691','Gaby':'1602.42.18221',
+'Aziza':'1600.52.26183','Marianne Leegaard':'1204.77.72107','Axel Vindenes':'3624.55.12311',
+'Cathrine Knudsen':'1590.12.84331','Chris Reddy':'8245.60.55091','Henrik Placht':'4280.15.55300',
+'Fride Amundsen':'1203.85.40597','Mia Gjerdrum Helgesen':'9497.06.90330',
+'Liz Ravn':'9802.10.21784','Vegard Blomberg':'1000.15.61028','Hanne Linnes':'9801.20.02130',
+'Guttestreker':'6026.05.39992','Line Hvoslef':'3411.34.17244','Anne Kristine Thorsby':'2095.50.30428',
+'Aija Vinkelmane-Dreiere':'1207.15.73964','Carl Oscar Schelbred':'9380.05.22305',
+'Santihoff':'4750.17.88712','Bleken.':'8601.05.57021','Mona Grini':'0535.08.24024',
+'Thorbjørn Endrerud':'1506.96.98767','Lasse Skarbørvik':'3260.51.92555','Per Ove Sødal':'3060.39.45936',
+'Helene Fjell':'6222.10.54879','Elisabeth Ree':'1061.30.67545','Erling Valtyrson':'6504.10.91511',
+'Ståle Gerhardsen':'4202.37.17748','Knut Frøyhaug':'5136.10.26628','Fred Freddy Frosk':'9001.10.96823',
+'Henrik Kleppe':'1208.52.49477','Bodil Drange Pedersen':'9775.41.81714','Rittun':'6030.10.75416',
+'Thea Arntzen':'1030.11.61943','Axel Thorenfeldt':'1506.74.92932','Thea Elise Klingvall':'2635.19.43415',
+'Tommy Pain':'1875.10.35280','Bjørn Båsen':'1638.20.72468','Charlotte Bergesen':'9044.12.70894',
+'Magnus Sørensen':'6031.23.38583','Alf Christian Hvaring':'3040.52.15167','Lavrans Borgen':'1208.04.84192',
+'Borghild Thiry':'0540.71.04856','Stabel':'1224.91.47263','Sindre Fjell':'5470.11.05713',
+'Tor Lindrupsen':'6105.05.59318','Karen Aarre':'9713.49.39757','Helen Aspelund':'3126.31.15115',
+'Søssa Magnus':'6011.16.08744','Charlotte Engelhart':'0540.31.00503','Jan Eric Arnesen':'9680.08.46657',
+'Julian Karlsen':'6031.20.01082','Violet Polsangi':'1506.86.56424','Elisabeth Werp':'2220.55.51747',
+'Cecilia Riise Kjeldsen':'1208.60.54947','Lars Løken':'0540.45.61016','Maud':'9046.11.99576',
+'Ole Fredrik Hvitsten':'1602.56.88361','Lars Christian Istad':'3980.19.92572','Odd Tandberg':'1214.23.15937',
+'Petter Wang':'9486.06.53480','Arnfinn Strand':'2801.08.19018','Håvard Homstvedt':'9230.28.30861',
+'Jonathan Chedeville':'0539.57.55473','Nikolai Torgersen':'1813.53.69531','Odd Nerdrum':'9488.09.67538',
+'Fredrik Skavlan':'9046.14.85692','Lea Alstad':'4285.17.26246','Johan Mæhlum':'2095.49.82905',
+'Frans Widerberg':'1225.21.10613','Tone Bakken':'1224.33.11207','Lise Amundsen':'6118.13.16399',
+'Sebastian Slotte':'3633.41.82880','Else Hagen':'9100.15.89348','Max':'1227.63.38771',
+'Nerdrumdame':'1080.23.34481','Steinar Caspari':'2470.29.20848','Alexsandria Pacchiella':'1506.96.45787',
+'Hege Jaksland Klausen':'9100.19.21873','Nora Sandbæk':'1080.65.71445','Borghild Thyri':'0540.71.04856',
+'Håkon K. Indrehus':'3705.53.15028','Wenche Øyen':'1603.60.28681'
+};
+
+/* Slår opp kontonummer for en kunstner. Handterer spesialtilfeller (f.eks. Sverre Bjertnæs) */
+function getKontonummer(kunstnerNavn,type){
+  var navn=(kunstnerNavn||'').trim();
+  var t=(type||'').trim();
+  /* Sverre Bjertnæs har egne konti for Grafikk og Maleri/Original */
+  if(navn==='Sverre Bjertnæs'){
+    return t==='Grafikk'?'1607.19.31424':'6401.13.81586';
+  }
+  return KUNSTNER_KONTO[navn]||'';
+}
+
 /* ══════════════ SPESIALFORDELING PER KUNSTNER ══════════════
    Beregner {tilSoli, tilKunstner} basert på kunstner/type/pris.
    Standard: 40% Soli / 60% kunstner. Unntak:
-   - Hanne Linnes, Liz Ravn, Jane Hupe:            45% / 55%
-   - Nico Widerberg (skulptur = type 'Original'):  30% / 70%
-   - Petter Hepsø (skulptur = type 'Original'):    total / 3 til Soli, resten til kunstner
+   - Hanne Linnes, Liz Ravn, Jane Hupe, Lise Amundsen:  45% / 55%
+   - Nico Widerberg (skulptur = type 'Original'):       30% / 70%
+   - Petter Hepsø (skulptur = type 'Original'):         total / 3 til Soli, resten til kunstner
      (evt. øre-avvik går til Petter) */
 function beregnFordeling(kunstner,type,pris){
   var p=pris||0;
@@ -2638,17 +2711,15 @@ function beregnFordeling(kunstner,type,pris){
   var t=(type||'').trim();
   var tilSoli,tilKunstner;
   if(k==='Petter Hepsø'&&t==='Original'){
-    /* Skulpturer: floor(pris/3) til Soli, resten til kunstner (kronen "gis" til Petter) */
     tilSoli=Math.floor(p/3);
     tilKunstner=p-tilSoli;
   } else if(k==='Nico Widerberg'&&t==='Original'){
     tilSoli=Math.round(p*0.3);
     tilKunstner=p-tilSoli;
-  } else if(k==='Hanne Linnes'||k==='Liz Ravn'||k==='Jane Hupe'){
+  } else if(k==='Hanne Linnes'||k==='Liz Ravn'||k==='Jane Hupe'||k==='Lise Amundsen'){
     tilSoli=Math.round(p*0.45);
     tilKunstner=p-tilSoli;
   } else {
-    /* Standard 40/60 */
     tilSoli=Math.round(p*0.4);
     tilKunstner=p-tilSoli;
   }
@@ -2678,11 +2749,12 @@ function eksporterKunstnerExcel(kunstnerNavn){
     wsData.push(['Tittel:','Pris:','Til Kunstner:','Kontonummer:']);
     var headerRadIdx=wsData.length-1;
     var sumPris=0,sumTilKunstner=0;
+    /* Hent kontonummer for kunstneren (kan variere per type, f.eks. Sverre Bjertnæs) */
     data.forEach(function(s){
       var pris=s.pris||0;
       var f=beregnFordeling(s.kunstner,s.type,pris);
       sumPris+=pris;sumTilKunstner+=f.tilKunstner;
-      wsData.push([s.tittel||'',pris,f.tilKunstner,'']);
+      wsData.push([s.tittel||'',pris,f.tilKunstner,getKontonummer(s.kunstner,s.type)]);
     });
     var sumRadIdx=wsData.length;
     wsData.push(['SUM:',sumPris,sumTilKunstner,'']);
@@ -2864,7 +2936,7 @@ function bygExcelFraSalg(data,filnavn,erEkstra){
       s.kunstner||'',s.tittel||'',
       pris,s.bkh||0,s.ramme||0,
       f.tilSoli,f.tilKunstner,'',/* Sum til kunstner – fylles for siste rad per kunstner */
-      '',/* Kontonummer – tomt for utfylling */
+      getKontonummer(s.kunstner,s.type),/* Kontonummer – hentes automatisk fra KUNSTNER_KONTO */
       s.frakt||0,s.total||0,s.levering?'Ja':'Nei',s.hentet?'Ja':'Nei',s.faktura_sendt?'Ja':'Nei',s.selger||''
     ];
   }
