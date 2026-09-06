@@ -2721,10 +2721,20 @@ function leggTilHeaderFooterOgLandscape(blob,kunstnerNavn,ekstraNavn){
         var oddFooter='&amp;LSoli Brug AS&amp;CKontakt: Jacob D'+String.fromCharCode(248)+'rje. Tlf: 98071211_x000a_Mail: jacob@soli-brug.no';
         var headerFooterXml='<headerFooter><oddHeader>'+oddHeader+'</oddHeader><oddFooter>'+oddFooter+'</oddFooter></headerFooter>';
         var pageSetupXml='<pageSetup orientation="landscape" paperSize="9"/>';
-        /* Fjern evt. eksisterende, deretter sett inn før </worksheet> (rekkefølge: pageSetup → headerFooter) */
+        /* Fjern evt. eksisterende pageSetup og headerFooter først */
         xml=xml.replace(/<headerFooter[\s\S]*?<\/headerFooter>/g,'');
         xml=xml.replace(/<pageSetup[^\/]*\/>/g,'');
-        xml=xml.replace('</worksheet>',pageSetupXml+headerFooterXml+'</worksheet>');
+        /* KRITISK: OOXML krever streng rekkefølge på worksheet-elementer:
+           pageMargins → pageSetup → headerFooter → rowBreaks → ... → ignoredErrors → drawing
+           Excel avviser filen som "korrupt" hvis dette er feil (openpyxl er mer tolerant).
+           Vi setter derfor inn RIGHT etter pageMargins. Hvis pageMargins ikke finnes,
+           legger vi det til før </worksheet> (fallback). */
+        var pageMarginsMatch=xml.match(/<pageMargins[^\/]*\/>/);
+        if(pageMarginsMatch){
+          xml=xml.replace(pageMarginsMatch[0],pageMarginsMatch[0]+pageSetupXml+headerFooterXml);
+        } else {
+          xml=xml.replace('</worksheet>',pageSetupXml+headerFooterXml+'</worksheet>');
+        }
         zip.file(sheetPath,xml);
         return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
       });
