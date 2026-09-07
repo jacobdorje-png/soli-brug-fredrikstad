@@ -3353,15 +3353,18 @@ function openModal(s){
   document.getElementById('m-hentes-soli').checked=s.hentested==='soli';
   document.getElementById('m-hentes-fred').checked=s.hentested==='fredrikstad';
   document.getElementById('m-ekstraliste').value=s.ekstraliste||'';
-  /* Bygg hurtigvalg-knapper for ekstraliste */
+  /* Bygg hurtigvalg-knapper for ekstraliste – arkiverte skjules,
+     men salgets NÅVÆRENDE ekstraliste beholdes uansett så bruker ser hva som er valgt */
   var chipsEl=document.getElementById('m-ekstraliste-chips');
   chipsEl.innerHTML='';
   var eksisterende=[];
   alleSalg.forEach(function(x){
-    if(x.ekstraliste&&eksisterende.indexOf(x.ekstraliste)===-1)eksisterende.push(x.ekstraliste);
+    if(x.ekstraliste&&!x.arkiv&&eksisterende.indexOf(x.ekstraliste)===-1)eksisterende.push(x.ekstraliste);
   });
   var naa=naavarendeEkstraliste();
   if(eksisterende.indexOf(naa)===-1)eksisterende.push(naa);
+  /* Sørg for at nåværende valgte ekstraliste alltid vises som chip (selv om den er arkivert) */
+  if(s.ekstraliste&&eksisterende.indexOf(s.ekstraliste)===-1)eksisterende.push(s.ekstraliste);
   sorterEkstralisteNavn(eksisterende).forEach(function(navn){
     var c=document.createElement('button');
     c.type='button';
