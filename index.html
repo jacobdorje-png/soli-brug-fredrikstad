@@ -585,6 +585,7 @@ datalist{display:none!important}
           <button class="excel-btn" id="epost-btn" style="display:none;border-color:#1a5fa8;color:#1a5fa8" onclick="exportEpost()">✉️ E-poster</button>
           <button class="excel-btn" id="levering-btn" style="display:none;border-color:#5a3a7a;color:#5a3a7a" onclick="exportLeveringsliste()">📦 Leveringsliste</button>
           <button class="excel-btn" id="excel-enkel-btn" style="display:none;border-color:#9a7040;color:#9a7040" onclick="exportExcelEnkel()">📋 Oppstilling</button>
+          <button class="excel-btn" id="alle-oppgjor-btn" style="display:none;border-color:#7a5020;color:#7a5020" onclick="eksporterAlleKunstnereZip()" title="Last ned oppgjørs-Excel for alle kunstnere i denne mappen, samlet i én ZIP-fil">📦 Alle oppgjør (ZIP)</button>
           <button class="excel-btn" id="excel-btn" style="display:none" onclick="exportExcel()">📊 Excel</button>
         </div>
       </div>
@@ -1386,7 +1387,7 @@ function renderSalg(){
   /* SØKEMODUS */
   if(sokeTekst){
     document.getElementById('sales-title').textContent='Søkeresultat';
-    document.getElementById('excel-btn').style.display='none';document.getElementById('epost-btn').style.display='none';document.getElementById('excel-enkel-btn').style.display='none';document.getElementById('levering-btn').style.display='none';
+    document.getElementById('excel-btn').style.display='none';document.getElementById('epost-btn').style.display='none';document.getElementById('excel-enkel-btn').style.display='none';document.getElementById('levering-btn').style.display='none';document.getElementById('alle-oppgjor-btn').style.display='none';
     var treff=alleSalg.filter(function(s){return sokFilter(s,sokeTekst);});
     var ie=document.getElementById('search-info');
     ie.style.display='block';ie.textContent='Fant '+treff.length+' treff på «'+sokeTekst+'» (alle butikker, inkl. arkiverte)';
@@ -1420,7 +1421,7 @@ function renderSalg(){
   /* FAKTURA-VISNING */
   if(visFaktura){
     document.getElementById('sales-title').textContent='📄 Faktura – alle butikker';
-    document.getElementById('excel-btn').style.display='none';document.getElementById('epost-btn').style.display='none';document.getElementById('excel-enkel-btn').style.display='none';document.getElementById('levering-btn').style.display='none';
+    document.getElementById('excel-btn').style.display='none';document.getElementById('epost-btn').style.display='none';document.getElementById('excel-enkel-btn').style.display='none';document.getElementById('levering-btn').style.display='none';document.getElementById('alle-oppgjor-btn').style.display='none';
     /* Salg med skal_ha_faktura fra alle butikker (ikke arkiverte) */
     var fakturaSalg=alleSalg.filter(function(s){return!s.arkiv&&s.skal_ha_faktura;});
     /* Innrammingsjobber med skal_ha_faktura */
@@ -1440,7 +1441,7 @@ function renderSalg(){
   /* ARKIVVISNING */
   if(visArkiv){
     document.getElementById('sales-title').textContent='Arkiv';
-    document.getElementById('excel-btn').style.display='none';document.getElementById('epost-btn').style.display='none';document.getElementById('excel-enkel-btn').style.display='none';document.getElementById('levering-btn').style.display='none';
+    document.getElementById('excel-btn').style.display='none';document.getElementById('epost-btn').style.display='none';document.getElementById('excel-enkel-btn').style.display='none';document.getElementById('levering-btn').style.display='none';document.getElementById('alle-oppgjor-btn').style.display='none';
     var ark=alleSalg.filter(function(s){return!!s.arkiv&&s.butikk===aktivButikk;});
     if(!ark.length){document.getElementById('empty').style.display='block';document.getElementById('empty').textContent='Arkivet er tomt.';return;}
     var grp={},rek=[];
@@ -1500,6 +1501,8 @@ function renderSalg(){
   var butikkNavn=aktivButikk==='soli'?'Soli':'Fredrikstad';
   document.getElementById('sales-title').textContent=erAlle?'Nylige salg – '+butikkNavn:(erEkstraliste?'📋 '+ekstralisteNavn:aktivFilter);
   document.getElementById('excel-btn').style.display=raaData.length?'inline-flex':'none';document.getElementById('epost-btn').style.display=raaData.length?'inline-flex':'none';document.getElementById('excel-enkel-btn').style.display=raaData.length?'inline-flex':'none';document.getElementById('levering-btn').style.display=raaData.length?'inline-flex':'none';
+  /* "Alle oppgjør (ZIP)" vises kun i ekstralister (samlet oppgjør for alle kunstnere i mappen) */
+  document.getElementById('alle-oppgjor-btn').style.display=(raaData.length&&erEkstraliste)?'inline-flex':'none';
 
   if(!raaData.length){document.getElementById('empty').style.display='block';document.getElementById('empty').textContent='Ingen salg ennå.';return;}
   if(erAlle){raaData.forEach(function(s){list.appendChild(makeCard(s,false));});}
@@ -2090,10 +2093,10 @@ function visFlyttModalSalg(s){
   var kunstner=s.kunstner||'(ukjent)';
   var tittel=s.tittel||'(uten tittel)';
   document.getElementById('flytt-modal-tekst').textContent='Flytt salget «'+kunstner+' – '+tittel+'» fra «'+fraNavn+'» til:';
-  /* Finn alle eksisterende ekstralister fra alle butikker */
+  /* Finn alle eksisterende AKTIVE ekstralister (arkiverte skjules – hindrer at et salg flyttes inn i en arkivert liste) */
   var eksisterende=[];
   alleSalg.forEach(function(x){
-    if(x.ekstraliste&&x.ekstraliste!==fraNavn&&eksisterende.indexOf(x.ekstraliste)===-1)eksisterende.push(x.ekstraliste);
+    if(x.ekstraliste&&!x.arkiv&&x.ekstraliste!==fraNavn&&eksisterende.indexOf(x.ekstraliste)===-1)eksisterende.push(x.ekstraliste);
   });
   /* Inkluder også nåværende periode hvis ikke allerede med */
   var naa=naavarendeEkstraliste();
@@ -2738,91 +2741,158 @@ function beregnFordeling(kunstner,type,pris,tittel){
   return{tilSoli:tilSoli,tilKunstner:tilKunstner};
 }
 
-/* Eksporter kun én kunstner – enkelt oppgjør-format (Tittel | Pris | Til Kunstner | Kontonummer + SUM) */
-function eksporterKunstnerExcel(kunstnerNavn){
-  var data=salgIAktivVisning().filter(function(s){return(s.kunstner||'(ukjent)')===kunstnerNavn;});
-  if(!data.length){alert('Ingen salg for '+kunstnerNavn);return;}
-  /* Sorter innad: Original → Monotypi → Grafikk, deretter tittel */
+/* Bygger blob for én kunstners oppgjør-Excel. Returnerer Promise<Blob>.
+   Bruk denne både fra eksporterKunstnerExcel (last ned) og eksporterAlleKunstnereZip (samle i zip). */
+function lagKunstnerOppgjorBlob(kunstnerNavn,data,ekstraNavn){
+  return new Promise(function(resolve,reject){
+    function lagXlsx(){
+      var XLSX=window.XLSX;
+      var LOGO_ROWS=4;
+      var wsData=[];
+      for(var i=0;i<LOGO_ROWS;i++)wsData.push(['','','','']);
+      wsData.push(['Tittel:','Pris:','Til Kunstner:','Kontonummer:']);
+      var headerRadIdx=wsData.length-1;
+      var sumPris=0,sumTilKunstner=0;
+      data.forEach(function(s){
+        var pris=s.pris||0;
+        var f=beregnFordeling(s.kunstner,s.type,pris,s.tittel);
+        sumPris+=pris;sumTilKunstner+=f.tilKunstner;
+        wsData.push([s.tittel||'',pris,f.tilKunstner,getKontonummer(s.kunstner,s.type)]);
+      });
+      var sumRadIdx=wsData.length;
+      wsData.push(['SUM:',sumPris,sumTilKunstner,'']);
+
+      var ws=XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols']=[{wch:36},{wch:30},{wch:27},{wch:27}];
+      ws['!rows']=[];
+      for(var i=0;i<LOGO_ROWS;i++)ws['!rows'].push({hpt:24});
+      ws['!rows'].push({hpt:26});
+      for(var i=0;i<data.length;i++)ws['!rows'].push({hpt:24});
+      ws['!rows'].push({hpt:26});
+      ws['!margins']={left:0.7,right:0.7,top:0.75,bottom:0.75,header:0.3,footer:0.3};
+
+      if(XLSX.__hasStyle){
+        var mediumBorder={style:'medium',color:{rgb:'000000'}};
+        var thinBorder={style:'thin',color:{rgb:'000000'}};
+        for(var c=0;c<4;c++){
+          var ah=XLSX.utils.encode_cell({r:headerRadIdx,c:c});
+          if(!ws[ah])ws[ah]={t:'s',v:''};
+          ws[ah].s={font:{bold:true,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:mediumBorder,bottom:mediumBorder,left:mediumBorder,right:mediumBorder}};
+        }
+        for(var r=headerRadIdx+1;r<sumRadIdx;r++){
+          for(var c=0;c<4;c++){
+            var a=XLSX.utils.encode_cell({r:r,c:c});
+            if(!ws[a])ws[a]={t:c===1||c===2?'n':'s',v:c===1||c===2?0:''};
+            var erFet=(c===1||c===2);
+            ws[a].s={font:{bold:erFet,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:thinBorder,bottom:thinBorder,left:thinBorder,right:thinBorder}};
+          }
+        }
+        for(var c=0;c<4;c++){
+          var aS=XLSX.utils.encode_cell({r:sumRadIdx,c:c});
+          if(!ws[aS])ws[aS]={t:c===1||c===2?'n':'s',v:c===1||c===2?0:''};
+          var erFet=(c===1||c===2);
+          ws[aS].s={font:{bold:erFet||c===0,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:mediumBorder,bottom:mediumBorder,left:c===0?mediumBorder:thinBorder,right:c===3?mediumBorder:thinBorder}};
+        }
+      }
+
+      var wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,kunstnerNavn.substring(0,31));
+      var wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+      var blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      leggTilLogoOgHeaderFooter(blob,kunstnerNavn,ekstraNavn).then(resolve).catch(function(){resolve(blob);});
+    }
+    if(window.XLSX&&window.XLSX.__hasStyle){lagXlsx();}
+    else{
+      var s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js';
+      s.onload=function(){window.XLSX.__hasStyle=true;lagXlsx();};
+      s.onerror=function(){reject(new Error('Kunne ikke laste xlsx-js-style'));};
+      document.head.appendChild(s);
+    }
+  });
+}
+
+/* Sorter en kunstners salg internt: Original → Monotypi → Grafikk, deretter tittel */
+function sorterKunstnerSalg(data){
   function typeRang(s){var t=(s.type||'').toLowerCase();if(t==='grafikk')return 2;if(t==='monotypi')return 1;return 0;}
-  data.sort(function(a,b){
+  return data.slice().sort(function(a,b){
     var ra=typeRang(a),rb=typeRang(b);
     if(ra!==rb)return ra-rb;
     return (a.tittel||'').localeCompare(b.tittel||'','nb');
   });
+}
+
+/* Eksporter kun én kunstner – enkelt oppgjør-format (Tittel | Pris | Til Kunstner | Kontonummer + SUM) */
+function eksporterKunstnerExcel(kunstnerNavn){
+  var data=salgIAktivVisning().filter(function(s){return(s.kunstner||'(ukjent)')===kunstnerNavn;});
+  if(!data.length){alert('Ingen salg for '+kunstnerNavn);return;}
   var ekstraNavn=aktivFilter.indexOf('__ekstra:')===0?aktivFilter.substring(9):'';
   var filnavn=kunstnerNavn.replace(/\s/g,'_')+(ekstraNavn?'_'+ekstraNavn.replace(/\s/g,'_'):'')+'_oppgjor.xlsx';
+  lagKunstnerOppgjorBlob(kunstnerNavn,sorterKunstnerSalg(data),ekstraNavn).then(function(blob){
+    delEllerLastNed(blob,filnavn,'📊 «'+filnavn+'» er klar');
+  }).catch(function(err){
+    alert('Kunne ikke lage Excel: '+err.message);
+  });
+}
 
-  function lagXlsx(){
-    var XLSX=window.XLSX;
-    /* 4 tomme rader øverst for logo-plassering, deretter header + data + SUM */
-    var LOGO_ROWS=4;
-    var wsData=[];
-    for(var i=0;i<LOGO_ROWS;i++)wsData.push(['','','','']);
-    wsData.push(['Tittel:','Pris:','Til Kunstner:','Kontonummer:']);
-    var headerRadIdx=wsData.length-1;
-    var sumPris=0,sumTilKunstner=0;
-    /* Hent kontonummer for kunstneren (kan variere per type, f.eks. Sverre Bjertnæs) */
-    data.forEach(function(s){
-      var pris=s.pris||0;
-      var f=beregnFordeling(s.kunstner,s.type,pris,s.tittel);
-      sumPris+=pris;sumTilKunstner+=f.tilKunstner;
-      wsData.push([s.tittel||'',pris,f.tilKunstner,getKontonummer(s.kunstner,s.type)]);
-    });
-    var sumRadIdx=wsData.length;
-    wsData.push(['SUM:',sumPris,sumTilKunstner,'']);
+/* Eksporter alle kunstnere i aktuelle ekstraliste som separate Excel-filer pakket i én ZIP */
+function eksporterAlleKunstnereZip(){
+  var data=salgIAktivVisning();
+  if(!data.length){alert('Ingen salg å eksportere');return;}
+  var ekstraNavn=aktivFilter.indexOf('__ekstra:')===0?aktivFilter.substring(9):'';
+  /* Grupper etter kunstner (unntatt Gavekort som ikke har oppgjør) */
+  var grupper={};
+  data.forEach(function(s){
+    var k=s.kunstner||'(ukjent)';
+    if(k==='Gavekort')return;
+    if(!grupper[k])grupper[k]=[];
+    grupper[k].push(s);
+  });
+  var kunstnere=Object.keys(grupper).sort(function(a,b){return a.localeCompare(b,'nb');});
+  if(!kunstnere.length){alert('Ingen kunstnere å eksportere');return;}
 
-    var ws=XLSX.utils.aoa_to_sheet(wsData);
-    ws['!cols']=[{wch:36},{wch:30},{wch:27},{wch:27}];
-    ws['!rows']=[];
-    for(var i=0;i<LOGO_ROWS;i++)ws['!rows'].push({hpt:24}); /* logo-plass */
-    ws['!rows'].push({hpt:26}); /* header */
-    for(var i=0;i<data.length;i++)ws['!rows'].push({hpt:24});
-    ws['!rows'].push({hpt:26}); /* SUM */
-    ws['!margins']={left:0.7,right:0.7,top:0.75,bottom:0.75,header:0.3,footer:0.3};
+  var btn=document.getElementById('alle-oppgjor-btn');
+  var opprinneligTekst=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.innerHTML='⏳ Genererer 0/'+kunstnere.length+'...';}
 
-    if(XLSX.__hasStyle){
-      var mediumBorder={style:'medium',color:{rgb:'000000'}};
-      var thinBorder={style:'thin',color:{rgb:'000000'}};
-      /* HEADER-rad */
-      for(var c=0;c<4;c++){
-        var ah=XLSX.utils.encode_cell({r:headerRadIdx,c:c});
-        if(!ws[ah])ws[ah]={t:'s',v:''};
-        ws[ah].s={font:{bold:true,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:mediumBorder,bottom:mediumBorder,left:mediumBorder,right:mediumBorder}};
-      }
-      /* DATA-rader */
-      for(var r=headerRadIdx+1;r<sumRadIdx;r++){
-        for(var c=0;c<4;c++){
-          var a=XLSX.utils.encode_cell({r:r,c:c});
-          if(!ws[a])ws[a]={t:c===1||c===2?'n':'s',v:c===1||c===2?0:''};
-          var erFet=(c===1||c===2);
-          ws[a].s={font:{bold:erFet,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:thinBorder,bottom:thinBorder,left:thinBorder,right:thinBorder}};
-        }
-      }
-      /* SUM-rad */
-      for(var c=0;c<4;c++){
-        var aS=XLSX.utils.encode_cell({r:sumRadIdx,c:c});
-        if(!ws[aS])ws[aS]={t:c===1||c===2?'n':'s',v:c===1||c===2?0:''};
-        var erFet=(c===1||c===2);
-        ws[aS].s={font:{bold:erFet||c===0,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:mediumBorder,bottom:mediumBorder,left:c===0?mediumBorder:thinBorder,right:c===3?mediumBorder:thinBorder}};
-      }
-    }
-
-    var wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,kunstnerNavn.substring(0,31));
-    var wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
-    var blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-
-    /* Legg til inline logo (i A1) + topp/bunntekst + landscape via JSZip */
-    leggTilLogoOgHeaderFooter(blob,kunstnerNavn,ekstraNavn).then(function(nyBlob){
-      delEllerLastNed(nyBlob,filnavn,'📊 «'+filnavn+'» er klar');
-    }).catch(function(err){
-      console.warn('Kunne ikke legge til logo/topptekst:',err);
-      delEllerLastNed(blob,filnavn,'📊 «'+filnavn+'» er klar');
+  function sikreJSZip(){
+    if(window.JSZip)return Promise.resolve();
+    return new Promise(function(res,rej){
+      var s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      s.onload=res;s.onerror=function(){rej(new Error('Kunne ikke laste JSZip'));};
+      document.head.appendChild(s);
     });
   }
 
-  if(window.XLSX&&window.XLSX.__hasStyle){lagXlsx();}
-  else{var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js';s.onload=function(){window.XLSX.__hasStyle=true;lagXlsx();};document.head.appendChild(s);}
+  sikreJSZip().then(function(){
+    var zip=new JSZip();
+    var ferdig=0;
+    /* Generer sekvensielt (unngår minne-topper og for mange samtidige XLSX-kall) */
+    function gjorNeste(i){
+      if(i>=kunstnere.length){
+        return zip.generateAsync({type:'blob',mimeType:'application/zip'}).then(function(zipBlob){
+          var zipFilnavn=(ekstraNavn?ekstraNavn.replace(/\s/g,'_'):'Alle')+'_alle_oppgjor.zip';
+          if(btn){btn.disabled=false;btn.innerHTML=opprinneligTekst;}
+          delEllerLastNed(zipBlob,zipFilnavn,'📦 «'+zipFilnavn+'» – '+kunstnere.length+' filer klare');
+        });
+      }
+      var k=kunstnere[i];
+      return lagKunstnerOppgjorBlob(k,sorterKunstnerSalg(grupper[k]),ekstraNavn).then(function(blob){
+        return blob.arrayBuffer().then(function(buf){
+          var kunstnerFilnavn=k.replace(/\s/g,'_')+(ekstraNavn?'_'+ekstraNavn.replace(/\s/g,'_'):'')+'_oppgjor.xlsx';
+          zip.file(kunstnerFilnavn,buf);
+          ferdig++;
+          if(btn)btn.innerHTML='⏳ Genererer '+ferdig+'/'+kunstnere.length+'...';
+          return gjorNeste(i+1);
+        });
+      });
+    }
+    return gjorNeste(0);
+  }).catch(function(err){
+    if(btn){btn.disabled=false;btn.innerHTML=opprinneligTekst;}
+    alert('Kunne ikke lage ZIP: '+err.message);
+  });
 }
 
 /* Legger til inline logo (som bilde i A1), topptekst, bunntekst og landscape-orientering
@@ -4304,11 +4374,14 @@ function init(){
   function byggEkstralisteChips(){
     var wrap=document.getElementById('f-ekstraliste-chips');
     wrap.innerHTML='';
+    /* Kun ekstralister med MINST ETT aktivt (ikke-arkivert) salg vises som valgmulighet.
+       Slik unngår vi at et nytt salg havner i en arkivert liste og blir automatisk arkivert. */
     var eksisterende=[];
     alleSalg.forEach(function(s){
-      if(s.ekstraliste&&eksisterende.indexOf(s.ekstraliste)===-1)eksisterende.push(s.ekstraliste);
+      if(s.ekstraliste&&!s.arkiv&&eksisterende.indexOf(s.ekstraliste)===-1)eksisterende.push(s.ekstraliste);
     });
     var naa=naavarendeEkstraliste();
+    /* Alltid vis nåværende periode (selv om den ikke har salg enda) */
     if(eksisterende.indexOf(naa)===-1)eksisterende.push(naa);
     var valgt=document.getElementById('f-ekstraliste-navn').value.trim();
     sorterEkstralisteNavn(eksisterende).forEach(function(navn){
