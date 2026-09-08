@@ -2766,11 +2766,12 @@ function lagKunstnerOppgjorBlob(kunstnerNavn,data,ekstraNavn){
       wsData.push(['','','','']);
       wsData.push(['','','','']);
       /* Rad 3+: Salg-data */
-      var sumTilKunstner=0;
+      var sumPris=0,sumTilKunstner=0;
       var kontonummer='';
       data.forEach(function(s,i){
         var pris=s.pris||0;
         var f=beregnFordeling(s.kunstner,s.type,pris,s.tittel);
+        sumPris+=pris;
         sumTilKunstner+=f.tilKunstner;
         if(i===0)kontonummer=getKontonummer(s.kunstner,s.type);
         wsData.push([s.tittel||'',pris,'','']);
@@ -2778,10 +2779,9 @@ function lagKunstnerOppgjorBlob(kunstnerNavn,data,ekstraNavn){
       /* Fyll opp med tomme rader til minst antallSalgRader */
       for(var i=data.length;i<antallSalgRader;i++)wsData.push(['','','','']);
       var sumRadIdx=wsData.length;
-      /* SUM-rad med Excel-formel */
-      var forsteDataRad=4;/* 1-basert: rad 4 er første datarad */
-      var sisteDataRad=forsteDataRad+antallSalgRader-1;
-      wsData.push(['SUM:',{f:'SUM(B'+forsteDataRad+':B'+sisteDataRad+')'},sumTilKunstner,kontonummer]);
+      /* SUM-rad – pre-computed verdi (unngår OOXML-problemer med formler og calcChain).
+         Brukeren kan enkelt endre til =SUM(B4:B23) manuelt om ønskelig. */
+      wsData.push(['SUM:',sumPris,sumTilKunstner,kontonummer]);
 
       var ws=XLSX.utils.aoa_to_sheet(wsData);
       ws['!cols']=[{wch:36},{wch:30},{wch:27},{wch:27}];
@@ -2983,13 +2983,17 @@ function leggTilLogoOgHeaderFooter(blob,kunstnerNavn,ekstraNavn){
         xml=xml.replace(/<pageSetup[^\/]*\/>/g,'');
         xml=xml.replace(/<drawing[^\/]*\/>/g,'');
         xml=xml.replace(/<legacyDrawingHF[^\/]*\/>/g,'');
-        /* KRITISK OOXML-rekkefølge: pageMargins → pageSetup → headerFooter → ... → legacyDrawingHF */
+        /* KRITISK OOXML-rekkefølge:
+           pageMargins → pageSetup → headerFooter → ... → ignoredErrors → legacyDrawingHF → </worksheet>
+           Excel klager på filen ("problem med noe av innholdet") hvis legacyDrawingHF kommer FØR ignoredErrors. */
         var pageMarginsMatch=xml.match(/<pageMargins[^\/]*\/>/);
         if(pageMarginsMatch){
-          xml=xml.replace(pageMarginsMatch[0],pageMarginsMatch[0]+pageSetupXml+headerFooterXml+legacyDrawingHFXml);
+          xml=xml.replace(pageMarginsMatch[0],pageMarginsMatch[0]+pageSetupXml+headerFooterXml);
         } else {
-          xml=xml.replace('</worksheet>',pageSetupXml+headerFooterXml+legacyDrawingHFXml+'</worksheet>');
+          xml=xml.replace('</worksheet>',pageSetupXml+headerFooterXml+'</worksheet>');
         }
+        /* legacyDrawingHF skal ALLTID komme helt sist (etter ignoredErrors) */
+        xml=xml.replace('</worksheet>',legacyDrawingHFXml+'</worksheet>');
         zip.file(sheetPath,xml);
 
         /* sheet1.xml.rels – legg til vmlDrawing-relasjon */
