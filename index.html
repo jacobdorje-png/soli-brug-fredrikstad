@@ -2923,114 +2923,59 @@ function eksporterAlleKunstnereZip(){
 
 /* Legger til inline logo (som bilde i A1), topptekst, bunntekst og landscape-orientering
    ved å manipulere xlsx-XML direkte (via JSZip). SheetJS støtter ikke dette direkte. */
+/* Legger til enkel topptekst/bunntekst + landscape-orientering.
+   Ingen logo – bruker "Soli Brug AS" som tekst i venstre header (matcher brukers eksempel-bilde).
+   Datoer og kunstnernavn er tomme utfyllingsfelt slik at brukeren fyller inn selv. */
 function leggTilLogoOgHeaderFooter(blob,kunstnerNavn,ekstraNavn){
   function gjor(){
     return JSZip.loadAsync(blob).then(function(zip){
       var sheetPath='xl/worksheets/sheet1.xml';
       var file=zip.file(sheetPath);
       if(!file)return blob;
-
-      /* Konverter base64-logo til bytes */
-      var b64=SOLI_LOGO_B64.replace(/^data:image\/png;base64,/,'');
-      var binStr=atob(b64);
-      var bytes=new Uint8Array(binStr.length);
-      for(var i=0;i<binStr.length;i++)bytes[i]=binStr.charCodeAt(i);
-      zip.file('xl/media/image1.png',bytes);
-
-      /* VML-tegning for header (Excel-native format for header-bilder).
-         Bildet plasseres øverst til venstre der "Soli Brug AS"-teksten var i originalen.
-         Størrelse: 80pt bredde x 34pt høyde (bevarer logoens aspektforhold). */
-      var vmlXml='<xml xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">'
-        +'<o:shapelayout v:ext="edit"><o:idmap v:ext="edit" data="1"/></o:shapelayout>'
-        +'<v:shapetype id="_x0000_t75" coordsize="21600,21600" o:spt="75" o:preferrelative="t" path="m@4@5l@4@11@9@11@9@5xe" filled="f" stroked="f">'
-        +'<v:stroke joinstyle="miter"/>'
-        +'<v:formulas>'
-          +'<v:f eqn="if lineDrawn pixelLineWidth 0"/><v:f eqn="sum @0 1 0"/><v:f eqn="sum 0 0 @1"/>'
-          +'<v:f eqn="prod @2 1 2"/><v:f eqn="prod @3 21600 pixelWidth"/><v:f eqn="prod @3 21600 pixelHeight"/>'
-          +'<v:f eqn="sum @0 0 1"/><v:f eqn="prod @6 1 2"/><v:f eqn="prod @7 21600 pixelWidth"/>'
-          +'<v:f eqn="sum @8 21600 0"/><v:f eqn="prod @7 21600 pixelHeight"/><v:f eqn="sum @10 21600 0"/>'
-        +'</v:formulas>'
-        +'<v:path o:extrusionok="f" gradientshapeok="t" o:connecttype="rect"/>'
-        +'<o:lock v:ext="edit" aspectratio="t"/>'
-        +'</v:shapetype>'
-        +'<v:shape id="LH1" o:spid="_x0000_s1025" type="#_x0000_t75" style="position:absolute;margin-left:0;margin-top:0;width:80pt;height:34pt;z-index:1" o:allowincell="f">'
-          +'<v:imagedata o:relid="rIdImage" o:title="Soli Brug"/>'
-          +'<o:lock v:ext="edit" rotation="t"/>'
-        +'</v:shape>'
-        +'</xml>';
-      zip.file('xl/drawings/vmlDrawing1.vml',vmlXml);
-
-      /* Relasjon vmlDrawing → image */
-      var vmlRelsXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-        +'<Relationship Id="rIdImage" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/>'
-        +'</Relationships>';
-      zip.file('xl/drawings/_rels/vmlDrawing1.vml.rels',vmlRelsXml);
-
-      /* Oppdater sheet1.xml med pageSetup, headerFooter og legacyDrawingHF */
       return file.async('string').then(function(xml){
-        /* Header: &L&G = logo til venstre (i stedet for "Soli Brug AS"-teksten)
-           &C = center med periode-utfyllingsfelt (tom under)
-           &R = høyre med kunstner-utfyllingsfelt (tom under)
-           \r\n = linjeskift for tomrom der brukeren fyller inn dato/kunstner */
-        var oddHeader='&amp;L&amp;G&amp;COversikt over salg i perioden: \r\n&amp;RKunstner: \r\n';
+        /* Topptekst matcher brukers eksempel:
+           - Venstre: "Soli Brug AS" (tekst)
+           - Senter: "Oversikt over salg i perioden:" + tom linje for dato
+           - Høyre: "Kunstner:" + tom linje for navn */
+        var oddHeader='&amp;LSoli Brug AS&amp;COversikt over salg i perioden: \r\n&amp;RKunstner: \r\n';
         var oddFooter='&amp;LSoli Brug AS&amp;CKontakt: Jacob D'+String.fromCharCode(248)+'rje. Tlf: 98071211\r\nMail: jacob@soli-brug.no';
         var headerFooterXml='<headerFooter><oddHeader>'+oddHeader+'</oddHeader><oddFooter>'+oddFooter+'</oddFooter></headerFooter>';
         var pageSetupXml='<pageSetup orientation="landscape" paperSize="9"/>';
-        var legacyDrawingHFXml='<legacyDrawingHF r:id="rIdVMLHF"/>';
-        /* Fjern eventuelt eksisterende først */
+        /* Fjern eventuelle rester fra tidligere logo-oppsett */
         xml=xml.replace(/<headerFooter[\s\S]*?<\/headerFooter>/g,'');
         xml=xml.replace(/<pageSetup[^\/]*\/>/g,'');
         xml=xml.replace(/<drawing[^\/]*\/>/g,'');
         xml=xml.replace(/<legacyDrawingHF[^\/]*\/>/g,'');
-        /* KRITISK OOXML-rekkefølge:
-           pageMargins → pageSetup → headerFooter → ... → ignoredErrors → legacyDrawingHF → </worksheet>
-           Excel klager på filen ("problem med noe av innholdet") hvis legacyDrawingHF kommer FØR ignoredErrors. */
+        /* Sett inn i korrekt OOXML-rekkefølge etter pageMargins */
         var pageMarginsMatch=xml.match(/<pageMargins[^\/]*\/>/);
         if(pageMarginsMatch){
           xml=xml.replace(pageMarginsMatch[0],pageMarginsMatch[0]+pageSetupXml+headerFooterXml);
         } else {
           xml=xml.replace('</worksheet>',pageSetupXml+headerFooterXml+'</worksheet>');
         }
-        /* legacyDrawingHF skal ALLTID komme helt sist (etter ignoredErrors) */
-        xml=xml.replace('</worksheet>',legacyDrawingHFXml+'</worksheet>');
         zip.file(sheetPath,xml);
 
-        /* sheet1.xml.rels – legg til vmlDrawing-relasjon */
+        /* Rydd bort logo-relaterte filer og relasjoner fra tidligere generasjoner */
+        var filerAaFjerne=['xl/media/image1.png','xl/drawings/vmlDrawing1.vml','xl/drawings/_rels/vmlDrawing1.vml.rels','xl/drawings/drawing1.xml','xl/drawings/_rels/drawing1.xml.rels'];
+        filerAaFjerne.forEach(function(f){if(zip.file(f))zip.remove(f);});
+
+        /* Rens sheet1.xml.rels for gamle logo-referanser */
         var sheetRelsPath='xl/worksheets/_rels/sheet1.xml.rels';
-        var vmlRel='<Relationship Id="rIdVMLHF" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing" Target="../drawings/vmlDrawing1.vml"/>';
-        var existing=zip.file(sheetRelsPath);
-        var relsPromise;
-        if(existing){
-          relsPromise=existing.async('string').then(function(rels){
-            /* Fjern evt. gamle drawing/vmlDrawing-referanser */
+        var relsPromise=Promise.resolve();
+        if(zip.file(sheetRelsPath)){
+          relsPromise=zip.file(sheetRelsPath).async('string').then(function(rels){
             rels=rels.replace(/<Relationship[^\/]*Type="[^"]*(drawing|vmlDrawing)"[^\/]*\/>/g,'');
-            rels=rels.replace('</Relationships>',vmlRel+'</Relationships>');
             zip.file(sheetRelsPath,rels);
           });
-        } else {
-          var newRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-            +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-            +vmlRel+'</Relationships>';
-          zip.file(sheetRelsPath,newRels);
-          relsPromise=Promise.resolve();
         }
 
-        /* Content_Types.xml – legg til png og vml default */
+        /* Rens Content_Types for drawing-overrides */
         var ctPromise=zip.file('[Content_Types].xml').async('string').then(function(ct){
-          if(ct.indexOf('Extension="png"')===-1){
-            ct=ct.replace('<Default','<Default Extension="png" ContentType="image/png"/><Default');
-          }
-          if(ct.indexOf('Extension="vml"')===-1){
-            ct=ct.replace('<Default','<Default Extension="vml" ContentType="application/vnd.openxmlformats-officedocument.vmlDrawing"/><Default');
-          }
+          ct=ct.replace(/<Override[^\/]*ContentType="[^"]*drawing\+xml"[^\/]*\/>/g,'');
           zip.file('[Content_Types].xml',ct);
         });
 
         return Promise.all([relsPromise,ctPromise]).then(function(){
-          /* Fjern gamle drawing1.xml-filer hvis de finnes fra tidligere generering */
-          if(zip.file('xl/drawings/drawing1.xml'))zip.remove('xl/drawings/drawing1.xml');
-          if(zip.file('xl/drawings/_rels/drawing1.xml.rels'))zip.remove('xl/drawings/_rels/drawing1.xml.rels');
           return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
         });
       });
