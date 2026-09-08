@@ -2742,63 +2742,89 @@ function beregnFordeling(kunstner,type,pris,tittel){
 }
 
 /* Bygger blob for én kunstners oppgjør-Excel. Returnerer Promise<Blob>.
-   Bruk denne både fra eksporterKunstnerExcel (last ned) og eksporterAlleKunstnereZip (samle i zip). */
+   Format matcher brukers eksempel (Salgsoppstilling__Axel_Thorenfeldt):
+   - Rad 1: Header (Tittel: | Pris: | Til Kunstner: | Kontonummer:), medium border, sentrert
+   - Rad 2-3: Tomme (buffer mellom header og første salg)
+   - Rad 4-N: Salg-data (kun tittel + pris per rad)
+   - Fyll opp med tomme rader til minst 20 datarader (så SUM alltid er "helt nederst")
+   - SUM-rad: SUM tekst + Excel-formel for pris + total til kunstner + kontonummer
+   - Pris/Til Kunstner: Excel-tallformat "kr X" med tusenskille
+   - Logo som inline bilde øverst til venstre (i A1-området) */
 function lagKunstnerOppgjorBlob(kunstnerNavn,data,ekstraNavn){
   return new Promise(function(resolve,reject){
     function lagXlsx(){
       var XLSX=window.XLSX;
-      var LOGO_ROWS=4;
+      /* Norsk kr-format med tusenskille: viser "kr 4 500" */
+      var KR_FORMAT='_-"kr"\\ * #\\ ##0_-;-"kr"\\ * #\\ ##0_-;_-"kr"\\ * "-"_-;_-@_-';
+      /* Minimum 20 datarader så SUM alltid står på rad 24 eller lavere */
+      var MIN_SALG_RADER=20;
+      var antallSalgRader=Math.max(MIN_SALG_RADER,data.length);
       var wsData=[];
-      for(var i=0;i<LOGO_ROWS;i++)wsData.push(['','','','']);
+      /* Rad 0: Header */
       wsData.push(['Tittel:','Pris:','Til Kunstner:','Kontonummer:']);
-      var headerRadIdx=wsData.length-1;
-      var sumPris=0,sumTilKunstner=0;
-      data.forEach(function(s){
+      /* Rad 1-2: Tomme (buffer) */
+      wsData.push(['','','','']);
+      wsData.push(['','','','']);
+      /* Rad 3+: Salg-data */
+      var sumTilKunstner=0;
+      var kontonummer='';
+      data.forEach(function(s,i){
         var pris=s.pris||0;
         var f=beregnFordeling(s.kunstner,s.type,pris,s.tittel);
-        sumPris+=pris;sumTilKunstner+=f.tilKunstner;
-        wsData.push([s.tittel||'',pris,f.tilKunstner,getKontonummer(s.kunstner,s.type)]);
+        sumTilKunstner+=f.tilKunstner;
+        if(i===0)kontonummer=getKontonummer(s.kunstner,s.type);
+        wsData.push([s.tittel||'',pris,'','']);
       });
+      /* Fyll opp med tomme rader til minst antallSalgRader */
+      for(var i=data.length;i<antallSalgRader;i++)wsData.push(['','','','']);
       var sumRadIdx=wsData.length;
-      wsData.push(['SUM:',sumPris,sumTilKunstner,'']);
+      /* SUM-rad med Excel-formel */
+      var forsteDataRad=4;/* 1-basert: rad 4 er første datarad */
+      var sisteDataRad=forsteDataRad+antallSalgRader-1;
+      wsData.push(['SUM:',{f:'SUM(B'+forsteDataRad+':B'+sisteDataRad+')'},sumTilKunstner,kontonummer]);
 
       var ws=XLSX.utils.aoa_to_sheet(wsData);
       ws['!cols']=[{wch:36},{wch:30},{wch:27},{wch:27}];
-      ws['!rows']=[];
-      for(var i=0;i<LOGO_ROWS;i++)ws['!rows'].push({hpt:24});
-      ws['!rows'].push({hpt:26});
-      for(var i=0;i<data.length;i++)ws['!rows'].push({hpt:24});
-      ws['!rows'].push({hpt:26});
+      /* Radhøyder som originalen */
+      ws['!rows']=[{hpt:20}];/* Header */
+      for(var i=1;i<sumRadIdx;i++)ws['!rows'].push({hpt:19});
+      ws['!rows'].push({hpt:20});/* SUM */
       ws['!margins']={left:0.7,right:0.7,top:0.75,bottom:0.75,header:0.3,footer:0.3};
 
       if(XLSX.__hasStyle){
         var mediumBorder={style:'medium',color:{rgb:'000000'}};
         var thinBorder={style:'thin',color:{rgb:'000000'}};
+        /* HEADER-rad (rad 0) */
         for(var c=0;c<4;c++){
-          var ah=XLSX.utils.encode_cell({r:headerRadIdx,c:c});
+          var ah=XLSX.utils.encode_cell({r:0,c:c});
           if(!ws[ah])ws[ah]={t:'s',v:''};
           ws[ah].s={font:{bold:true,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:mediumBorder,bottom:mediumBorder,left:mediumBorder,right:mediumBorder}};
         }
-        for(var r=headerRadIdx+1;r<sumRadIdx;r++){
+        /* Alle rader mellom header og SUM: tynn border rundt, sentrert, 14pt Calibri
+           Pris-kolonnen (c=1) er fet + kr-format */
+        for(var r=1;r<sumRadIdx;r++){
           for(var c=0;c<4;c++){
             var a=XLSX.utils.encode_cell({r:r,c:c});
-            if(!ws[a])ws[a]={t:c===1||c===2?'n':'s',v:c===1||c===2?0:''};
-            var erFet=(c===1||c===2);
+            if(!ws[a])ws[a]={t:c===1?'n':'s',v:c===1?'':''};
+            var erFet=(c===1);/* Kun Pris er fet i data-rader */
             ws[a].s={font:{bold:erFet,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:thinBorder,bottom:thinBorder,left:thinBorder,right:thinBorder}};
+            if(c===1)ws[a].z=KR_FORMAT;
           }
         }
+        /* SUM-rad: medium border rundt, fet, kr-format på B og C */
         for(var c=0;c<4;c++){
           var aS=XLSX.utils.encode_cell({r:sumRadIdx,c:c});
           if(!ws[aS])ws[aS]={t:c===1||c===2?'n':'s',v:c===1||c===2?0:''};
-          var erFet=(c===1||c===2);
-          ws[aS].s={font:{bold:erFet||c===0,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:mediumBorder,bottom:mediumBorder,left:c===0?mediumBorder:thinBorder,right:c===3?mediumBorder:thinBorder}};
+          ws[aS].s={font:{bold:true,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:mediumBorder,bottom:mediumBorder,left:mediumBorder,right:mediumBorder}};
+          if(c===1||c===2)ws[aS].z=KR_FORMAT;
         }
       }
 
       var wb=XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb,ws,kunstnerNavn.substring(0,31));
-      var wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+      var wbout=XLSX.write(wb,{bookType:'xlsx',type:'array',cellStyles:true});
       var blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      /* Legg til logo i topptekst (VML) + inline logo som fallback, samt bunntekst og landscape */
       leggTilLogoOgHeaderFooter(blob,kunstnerNavn,ekstraNavn).then(resolve).catch(function(){resolve(blob);});
     }
     if(window.XLSX&&window.XLSX.__hasStyle){lagXlsx();}
@@ -2911,81 +2937,96 @@ function leggTilLogoOgHeaderFooter(blob,kunstnerNavn,ekstraNavn){
       for(var i=0;i<binStr.length;i++)bytes[i]=binStr.charCodeAt(i);
       zip.file('xl/media/image1.png',bytes);
 
-      /* Drawing XML: posisjonerer logoen i A1-hjørnet (fast størrelse, ~46mm bredde) */
-      var drawingXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        +'<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-        +'<xdr:oneCellAnchor>'
-          +'<xdr:from><xdr:col>0</xdr:col><xdr:colOff>50000</xdr:colOff><xdr:row>0</xdr:row><xdr:rowOff>50000</xdr:rowOff></xdr:from>'
-          +'<xdr:ext cx="1666667" cy="700000"/>'
-          +'<xdr:pic>'
-            +'<xdr:nvPicPr><xdr:cNvPr id="1" name="Logo Soli Brug"/><xdr:cNvPicPr/></xdr:nvPicPr>'
-            +'<xdr:blipFill><a:blip r:embed="rIdImg1"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>'
-            +'<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="1666667" cy="700000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr>'
-          +'</xdr:pic>'
-          +'<xdr:clientData/>'
-        +'</xdr:oneCellAnchor></xdr:wsDr>';
-      zip.file('xl/drawings/drawing1.xml',drawingXml);
+      /* VML-tegning for header (Excel-native format for header-bilder).
+         Bildet plasseres øverst til venstre der "Soli Brug AS"-teksten var i originalen.
+         Størrelse: 80pt bredde x 34pt høyde (bevarer logoens aspektforhold). */
+      var vmlXml='<xml xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">'
+        +'<o:shapelayout v:ext="edit"><o:idmap v:ext="edit" data="1"/></o:shapelayout>'
+        +'<v:shapetype id="_x0000_t75" coordsize="21600,21600" o:spt="75" o:preferrelative="t" path="m@4@5l@4@11@9@11@9@5xe" filled="f" stroked="f">'
+        +'<v:stroke joinstyle="miter"/>'
+        +'<v:formulas>'
+          +'<v:f eqn="if lineDrawn pixelLineWidth 0"/><v:f eqn="sum @0 1 0"/><v:f eqn="sum 0 0 @1"/>'
+          +'<v:f eqn="prod @2 1 2"/><v:f eqn="prod @3 21600 pixelWidth"/><v:f eqn="prod @3 21600 pixelHeight"/>'
+          +'<v:f eqn="sum @0 0 1"/><v:f eqn="prod @6 1 2"/><v:f eqn="prod @7 21600 pixelWidth"/>'
+          +'<v:f eqn="sum @8 21600 0"/><v:f eqn="prod @7 21600 pixelHeight"/><v:f eqn="sum @10 21600 0"/>'
+        +'</v:formulas>'
+        +'<v:path o:extrusionok="f" gradientshapeok="t" o:connecttype="rect"/>'
+        +'<o:lock v:ext="edit" aspectratio="t"/>'
+        +'</v:shapetype>'
+        +'<v:shape id="LH1" o:spid="_x0000_s1025" type="#_x0000_t75" style="position:absolute;margin-left:0;margin-top:0;width:80pt;height:34pt;z-index:1" o:allowincell="f">'
+          +'<v:imagedata o:relid="rIdImage" o:title="Soli Brug"/>'
+          +'<o:lock v:ext="edit" rotation="t"/>'
+        +'</v:shape>'
+        +'</xml>';
+      zip.file('xl/drawings/vmlDrawing1.vml',vmlXml);
 
-      /* Relasjon drawing → image */
-      var drawingRelsXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      /* Relasjon vmlDrawing → image */
+      var vmlRelsXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-        +'<Relationship Id="rIdImg1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/>'
+        +'<Relationship Id="rIdImage" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/>'
         +'</Relationships>';
-      zip.file('xl/drawings/_rels/drawing1.xml.rels',drawingRelsXml);
+      zip.file('xl/drawings/_rels/vmlDrawing1.vml.rels',vmlRelsXml);
 
-      /* Oppdater sheet1.xml med drawing-ref, pageSetup, headerFooter (tomme utfyllingsfelt) */
+      /* Oppdater sheet1.xml med pageSetup, headerFooter og legacyDrawingHF */
       return file.async('string').then(function(xml){
-        var oddHeader='&amp;LSoli Brug AS&amp;COversikt over salg i perioden: &amp;RKunstner: ';
+        /* Header: &L&G = logo til venstre (i stedet for "Soli Brug AS"-teksten)
+           &C = center med periode-utfyllingsfelt (tom under)
+           &R = høyre med kunstner-utfyllingsfelt (tom under)
+           \r\n = linjeskift for tomrom der brukeren fyller inn dato/kunstner */
+        var oddHeader='&amp;L&amp;G&amp;COversikt over salg i perioden: \r\n&amp;RKunstner: \r\n';
         var oddFooter='&amp;LSoli Brug AS&amp;CKontakt: Jacob D'+String.fromCharCode(248)+'rje. Tlf: 98071211\r\nMail: jacob@soli-brug.no';
         var headerFooterXml='<headerFooter><oddHeader>'+oddHeader+'</oddHeader><oddFooter>'+oddFooter+'</oddFooter></headerFooter>';
         var pageSetupXml='<pageSetup orientation="landscape" paperSize="9"/>';
-        var drawingRef='<drawing r:id="rIdDraw1"/>';
-        /* Fjern eksisterende først */
+        var legacyDrawingHFXml='<legacyDrawingHF r:id="rIdVMLHF"/>';
+        /* Fjern eventuelt eksisterende først */
         xml=xml.replace(/<headerFooter[\s\S]*?<\/headerFooter>/g,'');
         xml=xml.replace(/<pageSetup[^\/]*\/>/g,'');
         xml=xml.replace(/<drawing[^\/]*\/>/g,'');
         xml=xml.replace(/<legacyDrawingHF[^\/]*\/>/g,'');
-        /* OOXML-rekkefølge: pageMargins → pageSetup → headerFooter → ... → drawing */
+        /* KRITISK OOXML-rekkefølge: pageMargins → pageSetup → headerFooter → ... → legacyDrawingHF */
         var pageMarginsMatch=xml.match(/<pageMargins[^\/]*\/>/);
         if(pageMarginsMatch){
-          xml=xml.replace(pageMarginsMatch[0],pageMarginsMatch[0]+pageSetupXml+headerFooterXml);
+          xml=xml.replace(pageMarginsMatch[0],pageMarginsMatch[0]+pageSetupXml+headerFooterXml+legacyDrawingHFXml);
         } else {
-          xml=xml.replace('</worksheet>',pageSetupXml+headerFooterXml+'</worksheet>');
+          xml=xml.replace('</worksheet>',pageSetupXml+headerFooterXml+legacyDrawingHFXml+'</worksheet>');
         }
-        /* drawing kommer sist – etter ignoredErrors, før </worksheet> */
-        xml=xml.replace('</worksheet>',drawingRef+'</worksheet>');
         zip.file(sheetPath,xml);
 
-        /* sheet1.xml.rels – legg til drawing-relasjon */
+        /* sheet1.xml.rels – legg til vmlDrawing-relasjon */
         var sheetRelsPath='xl/worksheets/_rels/sheet1.xml.rels';
-        var drawRel='<Relationship Id="rIdDraw1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/>';
+        var vmlRel='<Relationship Id="rIdVMLHF" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/vmlDrawing" Target="../drawings/vmlDrawing1.vml"/>';
         var existing=zip.file(sheetRelsPath);
         var relsPromise;
         if(existing){
           relsPromise=existing.async('string').then(function(rels){
-            rels=rels.replace('</Relationships>',drawRel+'</Relationships>');
+            /* Fjern evt. gamle drawing/vmlDrawing-referanser */
+            rels=rels.replace(/<Relationship[^\/]*Type="[^"]*(drawing|vmlDrawing)"[^\/]*\/>/g,'');
+            rels=rels.replace('</Relationships>',vmlRel+'</Relationships>');
             zip.file(sheetRelsPath,rels);
           });
         } else {
           var newRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-            +drawRel+'</Relationships>';
+            +vmlRel+'</Relationships>';
           zip.file(sheetRelsPath,newRels);
           relsPromise=Promise.resolve();
         }
 
-        /* Content_Types.xml – legg til png og drawing MIME-typer */
+        /* Content_Types.xml – legg til png og vml default */
         var ctPromise=zip.file('[Content_Types].xml').async('string').then(function(ct){
           if(ct.indexOf('Extension="png"')===-1){
             ct=ct.replace('<Default','<Default Extension="png" ContentType="image/png"/><Default');
           }
-          if(ct.indexOf('drawing+xml')===-1){
-            ct=ct.replace('</Types>','<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>');
+          if(ct.indexOf('Extension="vml"')===-1){
+            ct=ct.replace('<Default','<Default Extension="vml" ContentType="application/vnd.openxmlformats-officedocument.vmlDrawing"/><Default');
           }
           zip.file('[Content_Types].xml',ct);
         });
 
         return Promise.all([relsPromise,ctPromise]).then(function(){
+          /* Fjern gamle drawing1.xml-filer hvis de finnes fra tidligere generering */
+          if(zip.file('xl/drawings/drawing1.xml'))zip.remove('xl/drawings/drawing1.xml');
+          if(zip.file('xl/drawings/_rels/drawing1.xml.rels'))zip.remove('xl/drawings/_rels/drawing1.xml.rels');
           return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
         });
       });
