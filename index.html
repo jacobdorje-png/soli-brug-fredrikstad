@@ -2946,6 +2946,15 @@ function leggTilLogoOgHeaderFooter(blob,kunstnerNavn,ekstraNavn){
         xml=xml.replace(/<pageSetup[^\/]*\/>/g,'');
         xml=xml.replace(/<drawing[^\/]*\/>/g,'');
         xml=xml.replace(/<legacyDrawingHF[^\/]*\/>/g,'');
+        /* KRITISK: Sett default visning til "pageLayout" (Sideoppsett/Print Layout)
+           slik at topptekst/bunntekst og sideskilllinjer vises umiddelbart når filen åpnes.
+           Uten dette åpnes Excel i "Normal"-visning hvor topp/bunntekst er skjult. */
+        xml=xml.replace(/<sheetView\b([^>]*?)(\/?>)/g,function(match,attrs,endTag){
+          if(attrs.indexOf('view=')!==-1){
+            return '<sheetView'+attrs.replace(/view="[^"]*"/,'view="pageLayout"')+endTag;
+          }
+          return '<sheetView'+attrs+' view="pageLayout"'+endTag;
+        });
         /* Sett inn i korrekt OOXML-rekkefølge etter pageMargins */
         var pageMarginsMatch=xml.match(/<pageMargins[^\/]*\/>/);
         if(pageMarginsMatch){
