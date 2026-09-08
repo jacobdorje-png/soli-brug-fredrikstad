@@ -2701,6 +2701,33 @@ function getKontonummer(kunstnerNavn,type){
   return KUNSTNER_KONTO[navn]||'';
 }
 
+/* Konverterer ekstraliste-navn ("Jul-Aug 2026") til dato-range ("01.07.26 - 01.09.26").
+   Returnerer null hvis navnet ikke matcher periode-formatet. */
+function ekstralisteTilDatoRange(ekstraNavn){
+  if(!ekstraNavn)return null;
+  var m=ekstraNavn.match(/^(\S+)\s+(\d{4})$/);
+  if(!m)return null;
+  var periode=m[1];
+  var aar=parseInt(m[2]);
+  var perioder={
+    'Jan-Feb':[1,3],'Mar-Apr':[3,5],'Mai-Jun':[5,7],
+    'Jul-Aug':[7,9],'Sep-Okt':[9,11],'Nov-Des':[11,13]
+  };
+  var r=perioder[periode];
+  if(!r)return null;
+  var fraManed=r[0],tilManed=r[1];
+  var fraAar=aar,tilAar=aar;
+  if(tilManed>12){tilManed-=12;tilAar+=1;}
+  function pad(n){return n<10?'0'+n:''+n;}
+  return '01.'+pad(fraManed)+'.'+pad(fraAar%100)+' - 01.'+pad(tilManed)+'.'+pad(tilAar%100);
+}
+
+/* Bygg filnavn i formatet "Salgsoppstilling. [Kunstner] 01.07.26 - 01.09.26.xlsx" */
+function byggOppgjorFilnavn(kunstnerNavn,ekstraNavn){
+  var datoRange=ekstralisteTilDatoRange(ekstraNavn);
+  return 'Salgsoppstilling. '+kunstnerNavn+(datoRange?' '+datoRange:(ekstraNavn?' '+ekstraNavn:''))+'.xlsx';
+}
+
 /* ══════════════ SPESIALFORDELING PER KUNSTNER ══════════════
    Beregner {tilSoli, tilKunstner} basert på kunstner/type/pris/tittel.
    Standard: 40% Soli / 60% kunstner. Unntak:
@@ -2853,7 +2880,7 @@ function eksporterKunstnerExcel(kunstnerNavn){
   var data=salgIAktivVisning().filter(function(s){return(s.kunstner||'(ukjent)')===kunstnerNavn;});
   if(!data.length){alert('Ingen salg for '+kunstnerNavn);return;}
   var ekstraNavn=aktivFilter.indexOf('__ekstra:')===0?aktivFilter.substring(9):'';
-  var filnavn=kunstnerNavn.replace(/\s/g,'_')+(ekstraNavn?'_'+ekstraNavn.replace(/\s/g,'_'):'')+'_oppgjor.xlsx';
+  var filnavn=byggOppgjorFilnavn(kunstnerNavn,ekstraNavn);
   lagKunstnerOppgjorBlob(kunstnerNavn,sorterKunstnerSalg(data),ekstraNavn).then(function(blob){
     delEllerLastNed(blob,filnavn,'📊 «'+filnavn+'» er klar');
   }).catch(function(err){
@@ -2898,7 +2925,8 @@ function eksporterAlleKunstnereZip(){
     function gjorNeste(i){
       if(i>=kunstnere.length){
         return zip.generateAsync({type:'blob',mimeType:'application/zip'}).then(function(zipBlob){
-          var zipFilnavn=(ekstraNavn?ekstraNavn.replace(/\s/g,'_'):'Alle')+'_alle_oppgjor.zip';
+          var datoRange=ekstralisteTilDatoRange(ekstraNavn);
+          var zipFilnavn='Salgsoppstillinger'+(datoRange?' '+datoRange:(ekstraNavn?' '+ekstraNavn:''))+'.zip';
           if(btn){btn.disabled=false;btn.innerHTML=opprinneligTekst;}
           delEllerLastNed(zipBlob,zipFilnavn,'📦 «'+zipFilnavn+'» – '+kunstnere.length+' filer klare');
         });
@@ -2906,7 +2934,7 @@ function eksporterAlleKunstnereZip(){
       var k=kunstnere[i];
       return lagKunstnerOppgjorBlob(k,sorterKunstnerSalg(grupper[k]),ekstraNavn).then(function(blob){
         return blob.arrayBuffer().then(function(buf){
-          var kunstnerFilnavn=k.replace(/\s/g,'_')+(ekstraNavn?'_'+ekstraNavn.replace(/\s/g,'_'):'')+'_oppgjor.xlsx';
+          var kunstnerFilnavn=byggOppgjorFilnavn(k,ekstraNavn);
           zip.file(kunstnerFilnavn,buf);
           ferdig++;
           if(btn)btn.innerHTML='⏳ Genererer '+ferdig+'/'+kunstnere.length+'...';
