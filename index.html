@@ -2497,10 +2497,10 @@ function exportEnkelListe(salg,filnavn){
       wsData.push([navn,'']);
       rader.forEach(function(r){
         prisRows.push(wsData.length);
-        wsData.push([r.tittel,krPkt(r.pris)]);
+        wsData.push([r.tittel,r.pris]);
       });
       subtotalRows.push(wsData.length);
-      wsData.push(['Sum:',krPkt(sum)]);
+      wsData.push(['Sum:',sum]);
       wsData.push(['','']);
     }
     addSection('Maleri/original',maleriR,maleriSum);
@@ -2509,21 +2509,21 @@ function exportEnkelListe(salg,filnavn){
 
     /* Oppsummering per type, så total */
     var typeOppsumRows=[];
-    if(maleriR.length){typeOppsumRows.push(wsData.length);wsData.push(['Maleri:',krPkt(maleriSum)]);}
-    if(monotypiR.length){typeOppsumRows.push(wsData.length);wsData.push(['Monotypi:',krPkt(monotypiSum)]);}
-    if(grafikkR.length){typeOppsumRows.push(wsData.length);wsData.push(['Grafikk:',krPkt(grafikkSum)]);}
+    if(maleriR.length){typeOppsumRows.push(wsData.length);wsData.push(['Maleri:',maleriSum]);}
+    if(monotypiR.length){typeOppsumRows.push(wsData.length);wsData.push(['Monotypi:',monotypiSum]);}
+    if(grafikkR.length){typeOppsumRows.push(wsData.length);wsData.push(['Grafikk:',grafikkSum]);}
     wsData.push(['','']);
     sumRow=wsData.length;
-    wsData.push(['Sum:',krPkt(totalSum)]);
+    wsData.push(['Sum:',totalSum]);
     wsData.push(['','']);
     kunstnerRow=wsData.length;
-    wsData.push(['60% til kunstner',krPkt(kunstnerSum)]);
+    wsData.push(['60% til kunstner',kunstnerSum]);
     wsData.push(['','']);
     utleggRow=wsData.length;
     wsData.push(['Diverse utlegg','']);
     wsData.push(['','']);
     totalRow=wsData.length;
-    wsData.push(['Total sum:',krPkt(kunstnerSum)]);
+    wsData.push(['Total sum:',kunstnerSum]);
 
     var ws=XLSX.utils.aoa_to_sheet(wsData);
     ws['!cols']=[{wch:36},{wch:20}];
@@ -2781,8 +2781,9 @@ function lagKunstnerOppgjorBlob(kunstnerNavn,data,ekstraNavn){
   return new Promise(function(resolve,reject){
     function lagXlsx(){
       var XLSX=window.XLSX;
-      /* Norsk kr-format med tusenskille: viser "kr 4 500" */
-      var KR_FORMAT='_-"kr"\\ * #\\ ##0_-;-"kr"\\ * #\\ ##0_-;_-"kr"\\ * "-"_-;_-@_-';
+      /* Rent tallformat med norsk tusenskille (mellomrom): viser "4 500" istedenfor "kr 4 500".
+         Excel behandler cellene som ekte tall så formler, sortering og videre redigering fungerer optimalt. */
+      var TALL_FORMAT='#\\ ##0;-#\\ ##0;;@';
       /* Minimum 20 datarader så SUM alltid står på rad 24 eller lavere */
       var MIN_SALG_RADER=20;
       var antallSalgRader=Math.max(MIN_SALG_RADER,data.length);
@@ -2835,7 +2836,7 @@ function lagKunstnerOppgjorBlob(kunstnerNavn,data,ekstraNavn){
             if(!ws[a])ws[a]={t:c===1?'n':'s',v:c===1?'':''};
             var erFet=(c===1);/* Kun Pris er fet i data-rader */
             ws[a].s={font:{bold:erFet,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:thinBorder,bottom:thinBorder,left:thinBorder,right:thinBorder}};
-            if(c===1)ws[a].z=KR_FORMAT;
+            if(c===1)ws[a].z=TALL_FORMAT;
           }
         }
         /* SUM-rad: medium border rundt, fet, kr-format på B og C */
@@ -2843,7 +2844,7 @@ function lagKunstnerOppgjorBlob(kunstnerNavn,data,ekstraNavn){
           var aS=XLSX.utils.encode_cell({r:sumRadIdx,c:c});
           if(!ws[aS])ws[aS]={t:c===1||c===2?'n':'s',v:c===1||c===2?0:''};
           ws[aS].s={font:{bold:true,sz:14,name:'Calibri'},alignment:{horizontal:'center',vertical:'center'},border:{top:mediumBorder,bottom:mediumBorder,left:mediumBorder,right:mediumBorder}};
-          if(c===1||c===2)ws[aS].z=KR_FORMAT;
+          if(c===1||c===2)ws[aS].z=TALL_FORMAT;
         }
       }
 
