@@ -698,11 +698,29 @@ datalist{display:none!important}
   <div class="section">
     <div class="section-head">
       <div class="stitle">💰 Betaling</div>
+      <button class="excel-btn" onclick="visRegnskapModal()" style="border-color:#1a6a6a;color:#1a6a6a">📄 Regnskaps-PDF</button>
     </div>
     <div class="filter-wrap"><div class="filter-tabs" id="betaling-subtabs"></div></div>
     <div id="betaling-summary" style="padding:0 .85rem .6rem;font-size:.85rem;color:var(--muted);font-weight:600"></div>
     <div id="betaling-list" style="padding:0 .85rem"></div>
     <div id="betaling-empty" style="text-align:center;color:var(--muted);padding:2rem;font-size:.9rem;font-weight:600;display:none">Ingen salg her.</div>
+  </div>
+</div>
+<!-- Regnskaps-PDF modal -->
+<div class="modal-bg" id="regnskap-modal-bg">
+  <div class="modal-box sm">
+    <div class="modal-head"><h2 style="color:#1a6a6a">📄 Regnskaps-PDF</h2><button class="modal-close-btn" onclick="lukkRegnskapModal()">×</button></div>
+    <p style="margin:.4rem 0 .3rem;font-weight:600;font-size:.88rem">Velg måned(er) du vil ha rapport for. Rapporten inkluderer alle salg fra Soli, Fredrikstad, Innramming og Gavekort.</p>
+    <div id="regnskap-mnd-liste" style="max-height:50vh;overflow-y:auto;margin:1rem 0;padding:.5rem;background:#fff;border:1.5px solid var(--border);border-radius:8px"></div>
+    <div style="display:flex;gap:.5rem;justify-content:space-between;align-items:center;margin-bottom:.8rem;font-size:.82rem;font-weight:700">
+      <button type="button" onclick="regnskapVelgAlle(true)" style="background:none;border:none;color:#1a6a6a;text-decoration:underline;cursor:pointer;padding:.2rem .4rem;font-family:inherit">Velg alle</button>
+      <button type="button" onclick="regnskapVelgAlle(false)" style="background:none;border:none;color:var(--muted);text-decoration:underline;cursor:pointer;padding:.2rem .4rem;font-family:inherit">Fjern alle</button>
+      <span id="regnskap-antall" style="color:var(--muted)"></span>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn-save" style="flex:1;background:#1a6a6a;border-color:#1a6a6a" onclick="genererRegnskapPDF()">📄 Generer PDF</button>
+      <button class="btn-cancel" onclick="lukkRegnskapModal()">Avbryt</button>
+    </div>
   </div>
 </div>
 <div class="modal-bg" id="arkiv-modal-bg">
@@ -3650,6 +3668,354 @@ function betalingKategori(s){
 }
 async function loadBetaling(){
   renderBetaling();
+}
+
+/* ══════════════ REGNSKAPS-PDF ══════════════
+   Genererer en PDF med alle salg (Soli, Fredrikstad, Innramming, Gavekort) for valgte måneder.
+   Layout: Cover-side med sammendrag + salgskort-lignende oppføringer per salg.
+   3 salg per side, tydelig månedsseparator. */
+
+var maanedNavn=['Januar','Februar','Mars','April','Mai','Juni','Juli','August','September','Oktober','November','Desember'];
+var maanedKort=['Jan','Feb','Mar','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Des'];
+
+/* Samler alle salg + innramminger og grupperer per år-måned */
+function samleAlleSalgOgInnramming(){
+  var alle=[];
+  /* Vanlige salg (inkl. Gavekort som ligger i salg-tabellen med kunstner='Gavekort') */
+  alleSalg.forEach(function(s){
+    if(!s.created_at)return;
+    alle.push({
+      _kilde:'salg',_id:s.id,
+      ordrenummer:s.ordrenummer,created_at:s.created_at,
+      butikk:s.butikk,kunstner:s.kunstner,tittel:s.tittel,edisjon:s.edisjon,type:s.type,
+      navn:s.navn,telefon:s.telefon,epost:s.epost,adresse:s.adresse,
+      pris:s.pris||0,bkh:s.bkh||0,ramme:s.ramme||0,frakt:s.frakt||0,total:s.total||0,
+      selger:s.selger,betalt_kort:s.betalt_kort,skal_ha_faktura:s.skal_ha_faktura,faktura_sendt:s.faktura_sendt,
+      levering:s.levering,hentet:s.hentet,notat:s.notat,ekstraliste:s.ekstraliste
+    });
+  });
+  /* Innramming som "salg" med butikk='innramming' */
+  alleIr.forEach(function(ir){
+    if(!ir.created_at)return;
+    alle.push({
+      _kilde:'innramming',_id:ir.id,
+      ordrenummer:ir.ordrenummer,created_at:ir.created_at,
+      butikk:'innramming',kunstner:'—',tittel:ir.beskrivelse,edisjon:'',type:'Innramming',
+      navn:ir.navn,telefon:ir.telefon,epost:'',adresse:'',
+      pris:ir.pris||0,bkh:0,ramme:0,frakt:0,total:ir.pris||0,
+      selger:'',betalt_kort:false,skal_ha_faktura:ir.skal_ha_faktura,faktura_sendt:ir.faktura_sendt,
+      levering:false,hentet:ir.sendt_hentemeld,notat:ir.notat,ekstraliste:''
+    });
+  });
+  return alle;
+}
+
+/* Returnerer {tag: 'YYYY-MM', label: 'September 2026', antall: N, sum: X} for alle måneder som har salg */
+function samleMaaneder(){
+  var alle=samleAlleSalgOgInnramming();
+  var mnd={};
+  alle.forEach(function(s){
+    var d=new Date(s.created_at);
+    if(isNaN(d.getTime()))return;
+    var tag=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    if(!mnd[tag])mnd[tag]={tag:tag,aar:d.getFullYear(),maaned:d.getMonth(),label:maanedNavn[d.getMonth()]+' '+d.getFullYear(),antall:0,sum:0};
+    mnd[tag].antall++;
+    mnd[tag].sum+=(s.total||0);
+  });
+  return Object.values(mnd).sort(function(a,b){return b.tag.localeCompare(a.tag);});
+}
+
+function visRegnskapModal(){
+  var maaneder=samleMaaneder();
+  var liste=document.getElementById('regnskap-mnd-liste');
+  liste.innerHTML='';
+  if(!maaneder.length){
+    liste.innerHTML='<div style="padding:1rem;text-align:center;color:var(--muted)">Ingen salg registrert enda.</div>';
+  } else {
+    maaneder.forEach(function(m){
+      var row=document.createElement('label');
+      row.style.cssText='display:flex;align-items:center;gap:.6rem;padding:.55rem .5rem;border-radius:6px;cursor:pointer;transition:background .12s;font-size:.9rem';
+      row.addEventListener('mouseenter',function(){row.style.background='#f5f9f7';});
+      row.addEventListener('mouseleave',function(){row.style.background='';});
+      var cb=document.createElement('input');
+      cb.type='checkbox';cb.value=m.tag;cb.dataset.antall=m.antall;
+      cb.style.cssText='width:18px;height:18px;cursor:pointer;accent-color:#1a6a6a';
+      cb.addEventListener('change',oppdaterRegnskapAntall);
+      var tekst=document.createElement('div');
+      tekst.style.cssText='flex:1;display:flex;justify-content:space-between;align-items:center;gap:1rem';
+      tekst.innerHTML='<span style="font-weight:700;color:#111">'+m.label+'</span>'
+        +'<span style="color:var(--muted);font-weight:600;font-size:.82rem">'+m.antall+' salg · '+kr(m.sum)+'</span>';
+      row.appendChild(cb);row.appendChild(tekst);
+      liste.appendChild(row);
+    });
+  }
+  oppdaterRegnskapAntall();
+  document.getElementById('regnskap-modal-bg').classList.add('open');
+}
+function lukkRegnskapModal(){document.getElementById('regnskap-modal-bg').classList.remove('open');}
+function regnskapVelgAlle(velg){
+  document.querySelectorAll('#regnskap-mnd-liste input[type=checkbox]').forEach(function(cb){cb.checked=velg;});
+  oppdaterRegnskapAntall();
+}
+function oppdaterRegnskapAntall(){
+  var valgt=document.querySelectorAll('#regnskap-mnd-liste input[type=checkbox]:checked');
+  var totSalg=0;
+  valgt.forEach(function(cb){totSalg+=parseInt(cb.dataset.antall||'0');});
+  document.getElementById('regnskap-antall').textContent=valgt.length?(valgt.length+' måned'+(valgt.length===1?'':'er')+' · '+totSalg+' salg'):'Ingen valgt';
+}
+
+async function genererRegnskapPDF(){
+  var valgte=Array.from(document.querySelectorAll('#regnskap-mnd-liste input[type=checkbox]:checked')).map(function(cb){return cb.value;});
+  if(!valgte.length){alert('Velg minst én måned.');return;}
+  var alle=samleAlleSalgOgInnramming();
+  var salgIValgt=alle.filter(function(s){
+    var d=new Date(s.created_at);
+    if(isNaN(d.getTime()))return false;
+    var tag=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    return valgte.indexOf(tag)>=0;
+  });
+  if(!salgIValgt.length){alert('Ingen salg i de valgte månedene.');return;}
+  /* Sorter: kronologisk etter dato */
+  salgIValgt.sort(function(a,b){return (a.created_at||'').localeCompare(b.created_at||'');});
+
+  var btn=document.querySelector('#regnskap-modal-bg .btn-save');
+  var origLabel=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.innerHTML='⏳ Genererer PDF…';}
+
+  _loadJsPDF(function(){
+    try{
+      var jsPDF=window.jspdf.jsPDF;
+      var doc=new jsPDF({unit:'mm',format:'a4'});
+      var W=210,H=297,M=15;
+      /* Farge-tema */
+      var GRONN=[26,106,106];/* turkis (samme som Betaling-fanen) */
+      var GRA_TEKST=[90,90,90];
+      var GRA_BG=[248,248,248];
+      var GRA_BORDER=[210,210,210];
+
+      /* ── FORSIDE / SAMMENDRAG ── */
+      /* Logo */
+      try{doc.addImage(SOLI_LOGO_B64,'PNG',M,M,55,23);}catch(e){}
+      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor.apply(doc,GRA_TEKST);
+      doc.text('Soli Brug AS',W-M,M+3,{align:'right'});
+      doc.text('1719 Greåker',W-M,M+8,{align:'right'});
+      doc.text('Org.nr. 993 745 234',W-M,M+13,{align:'right'});
+
+      /* Tittel */
+      doc.setFontSize(22);doc.setTextColor.apply(doc,GRONN);
+      doc.text('Salgsrapport',M,M+40);
+      /* Periode-tekst */
+      var periodeTekst=lagPeriodeTekst(valgte);
+      doc.setFontSize(13);doc.setFont('helvetica','normal');doc.setTextColor(60);
+      doc.text(periodeTekst,M,M+48);
+
+      /* Sammendrag-boks */
+      var yBox=M+58;
+      doc.setFillColor.apply(doc,GRA_BG);
+      doc.rect(M,yBox,W-2*M,55,'F');
+      doc.setDrawColor.apply(doc,GRONN);
+      doc.setLineWidth(0.8);
+      doc.line(M,yBox,M,yBox+55);
+      /* Beregn totaler per butikk */
+      var totals={soli:{antall:0,sum:0},fredrikstad:{antall:0,sum:0},innramming:{antall:0,sum:0},gavekort:{antall:0,sum:0}};
+      var totAntall=0,totSum=0;
+      salgIValgt.forEach(function(s){
+        totAntall++;totSum+=(s.total||0);
+        var b=s.butikk;
+        if(s.kunstner==='Gavekort')b='gavekort';
+        if(totals[b]){totals[b].antall++;totals[b].sum+=(s.total||0);}
+      });
+      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(30);
+      doc.text('Sammendrag',M+5,yBox+9);
+      doc.setFont('helvetica','normal');doc.setFontSize(10);
+      var yy=yBox+18;
+      function radInSammendrag(label,antall,sum){
+        doc.setTextColor(60);doc.text(label,M+8,yy);
+        doc.text(antall+' salg',W/2-10,yy,{align:'right'});
+        doc.setFont('helvetica','bold');doc.setTextColor(30);
+        doc.text(kr(sum),W-M-5,yy,{align:'right'});
+        doc.setFont('helvetica','normal');
+        yy+=6;
+      }
+      radInSammendrag('Soli',totals.soli.antall,totals.soli.sum);
+      radInSammendrag('Fredrikstad',totals.fredrikstad.antall,totals.fredrikstad.sum);
+      radInSammendrag('Innramming',totals.innramming.antall,totals.innramming.sum);
+      radInSammendrag('Gavekort',totals.gavekort.antall,totals.gavekort.sum);
+      /* Total-strek */
+      doc.setDrawColor.apply(doc,GRONN);
+      doc.setLineWidth(0.5);
+      doc.line(M+5,yy-3,W-M-5,yy-3);
+      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor.apply(doc,GRONN);
+      doc.text('TOTALT',M+8,yy+3);
+      doc.text(totAntall+' salg',W/2-10,yy+3,{align:'right'});
+      doc.text(kr(totSum),W-M-5,yy+3,{align:'right'});
+
+      /* Sidefotinfo */
+      doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(140);
+      doc.text('Generert '+new Date().toLocaleDateString('nb-NO',{day:'2-digit',month:'2-digit',year:'numeric'}),M,H-M);
+      doc.text('Side 1',W-M,H-M,{align:'right'});
+
+      /* ── SALGSKORT PER SALG ── */
+      /* Grupper etter måned for tydelig separator */
+      var perMnd={};
+      salgIValgt.forEach(function(s){
+        var d=new Date(s.created_at);
+        var tag=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+        if(!perMnd[tag])perMnd[tag]={label:maanedNavn[d.getMonth()]+' '+d.getFullYear(),salg:[]};
+        perMnd[tag].salg.push(s);
+      });
+      var mndKeys=Object.keys(perMnd).sort();
+      var sideNr=2;
+      var KORT_H=82;/* mm per salgskort */
+      var MAKS_Y=H-M-8;/* nederste tillatte y før side-brudd */
+      mndKeys.forEach(function(mk){
+        var mndInfo=perMnd[mk];
+        /* Ny side for hver måned */
+        doc.addPage();
+        tegnSideHeader(doc,'Salgsrapport – '+mndInfo.label,W,M,GRONN,GRA_TEKST);
+        tegnSideFoot(doc,sideNr,W,H,M);
+        var y=M+22;
+        mndInfo.salg.forEach(function(s){
+          /* Plass nok for et kort? */
+          if(y+KORT_H>MAKS_Y){
+            sideNr++;doc.addPage();
+            tegnSideHeader(doc,'Salgsrapport – '+mndInfo.label,W,M,GRONN,GRA_TEKST);
+            tegnSideFoot(doc,sideNr,W,H,M);
+            y=M+22;
+          }
+          tegnSalgskort(doc,s,M,y,W-2*M,KORT_H-4,GRONN,GRA_BORDER,GRA_TEKST);
+          y+=KORT_H;
+        });
+        sideNr++;
+      });
+
+      /* Åpne PDF-en */
+      var pdfBlob=doc.output('blob');
+      var filnavn='Salgsrapport '+periodeTekst.replace(/[\/\\]/g,'-')+'.pdf';
+      if(btn){btn.disabled=false;btn.innerHTML=origLabel;}
+      lukkRegnskapModal();
+      delEllerLastNed(pdfBlob,filnavn,'📄 «'+filnavn+'» er klar');
+    }catch(err){
+      if(btn){btn.disabled=false;btn.innerHTML=origLabel;}
+      alert('Kunne ikke lage PDF: '+err.message);
+      console.error(err);
+    }
+  });
+}
+
+function lagPeriodeTekst(valgteTags){
+  var sortert=valgteTags.slice().sort();
+  if(sortert.length===1){
+    var p=sortert[0].split('-');
+    return maanedNavn[parseInt(p[1])-1]+' '+p[0];
+  }
+  var f=sortert[0].split('-'),l=sortert[sortert.length-1].split('-');
+  return maanedKort[parseInt(f[1])-1]+' '+f[0]+' – '+maanedKort[parseInt(l[1])-1]+' '+l[0];
+}
+
+function tegnSideHeader(doc,tittel,W,M,gronn,graTekst){
+  try{doc.addImage(SOLI_LOGO_B64,'PNG',M,M-2,32,13);}catch(e){}
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor.apply(doc,gronn);
+  doc.text(tittel,W-M,M+4,{align:'right'});
+  doc.setDrawColor.apply(doc,gronn);
+  doc.setLineWidth(0.4);
+  doc.line(M,M+15,W-M,M+15);
+  doc.setFont('helvetica','normal');
+}
+function tegnSideFoot(doc,sideNr,W,H,M){
+  doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(140);
+  doc.text('Soli Brug AS · Salgsrapport',M,H-M);
+  doc.text('Side '+sideNr,W-M,H-M,{align:'right'});
+}
+function tegnSalgskort(doc,s,x,y,w,h,gronn,graBorder,graTekst){
+  /* Boks-ramme */
+  doc.setDrawColor.apply(doc,graBorder);
+  doc.setLineWidth(0.3);
+  doc.setFillColor(253,253,253);
+  doc.roundedRect(x,y,w,h,2,2,'FD');
+  /* Venstre farge-stripe (butikk-farge) */
+  var farge;
+  if(s.butikk==='soli')farge=[58,122,82];
+  else if(s.butikk==='fredrikstad')farge=[139,26,46];
+  else if(s.butikk==='innramming')farge=[58,90,122];
+  else if(s.kunstner==='Gavekort')farge=[224,112,32];
+  else farge=[100,100,100];
+  doc.setFillColor.apply(doc,farge);
+  doc.rect(x,y,2.5,h,'F');
+  /* Header-rad: ordrenr | dato | butikk */
+  var xInn=x+6,yInn=y+6;
+  var d=new Date(s.created_at);
+  var datoStr=isNaN(d.getTime())?'':d.toLocaleDateString('nb-NO',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit'});
+  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(20);
+  doc.text(salgOnr(s),xInn,yInn);
+  var butikkLabel=s.butikk==='soli'?'Soli':(s.butikk==='fredrikstad'?'Fredrikstad':(s.butikk==='innramming'?'Innramming':(s.kunstner==='Gavekort'?'Gavekort':'')));
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor.apply(doc,farge);
+  doc.text(butikkLabel,xInn+38,yInn);
+  doc.setTextColor.apply(doc,graTekst);
+  doc.text(datoStr,x+w-4,yInn,{align:'right'});
+  /* Skille-linje */
+  doc.setDrawColor.apply(doc,graBorder);
+  doc.setLineWidth(0.2);
+  doc.line(xInn,yInn+2,x+w-4,yInn+2);
+  /* Kunde-info */
+  var yy=yInn+7;
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(30);
+  var kundeNavn=(s.navn||'—');
+  if(kundeNavn.length>50)kundeNavn=kundeNavn.substring(0,47)+'…';
+  doc.text(kundeNavn,xInn,yy);yy+=4;
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70);
+  var kontakt=[];
+  if(s.telefon)kontakt.push(s.telefon);
+  if(s.epost)kontakt.push(s.epost);
+  if(kontakt.length){doc.text(kontakt.join(' · '),xInn,yy);yy+=4;}
+  if(s.adresse){var adr=s.adresse.length>60?s.adresse.substring(0,57)+'…':s.adresse;doc.text(adr,xInn,yy);yy+=4;}
+  yy+=2;
+  /* Kunstverk-info (kunstner + tittel) */
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(30);
+  var verkTekst;
+  if(s.kunstner==='Gavekort')verkTekst='Gavekort';
+  else if(s.butikk==='innramming')verkTekst='Innramming: '+(s.tittel||'—');
+  else verkTekst=(s.kunstner||'—')+' – '+(s.tittel||'—')+(s.edisjon?' ('+s.edisjon+')':'');
+  if(verkTekst.length>80)verkTekst=verkTekst.substring(0,77)+'…';
+  doc.text(verkTekst,xInn,yy);yy+=4;
+  if(s.type&&s.type!=='Innramming'){
+    doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(100);
+    doc.text(s.type,xInn,yy);yy+=4;
+  }
+  /* Priser (høyre side) */
+  var xPris=x+w-4;
+  var yPris=yInn+7;
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70);
+  function prisLinje(label,verdi,fet){
+    doc.text(label,xPris-25,yPris,{align:'right'});
+    if(fet){doc.setFont('helvetica','bold');doc.setTextColor(20);}
+    doc.text(kr(verdi),xPris,yPris,{align:'right'});
+    if(fet){doc.setFont('helvetica','normal');doc.setTextColor(70);}
+    yPris+=4;
+  }
+  if(s.pris)prisLinje('Pris:',s.pris);
+  if(s.bkh)prisLinje('BKH 5%:',s.bkh);
+  if(s.ramme)prisLinje('Ramme:',s.ramme);
+  if(s.frakt)prisLinje('Frakt:',s.frakt);
+  /* Total-strek */
+  doc.setDrawColor(180);
+  doc.setLineWidth(0.2);
+  doc.line(xPris-32,yPris-2,xPris,yPris-2);
+  prisLinje('TOTAL:',s.total,true);
+
+  /* Bunn-linje: status */
+  var yStatus=y+h-4;
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(100);
+  var statuser=[];
+  if(s.betalt_kort)statuser.push('✓ Betalt kort');
+  else if(s.skal_ha_faktura&&s.faktura_sendt)statuser.push('✓ Faktura sendt');
+  else if(s.skal_ha_faktura)statuser.push('◯ Faktura');
+  else statuser.push('◯ Ubetalt');
+  if(s.levering)statuser.push('Leveres');
+  else if(s.hentet)statuser.push('✓ Hentet');
+  if(s.selger)statuser.push('Selger: '+s.selger);
+  if(s.ekstraliste)statuser.push('Liste: '+s.ekstraliste);
+  doc.text(statuser.join('   ·   '),xInn,yStatus);
 }
 function renderBetaling(){
   var list=document.getElementById('betaling-list');
